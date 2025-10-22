@@ -1,10 +1,14 @@
 import "./App.css";
+import Announcements from "@/components/Announcements";
 
 function App() {
   return (
-    <p className="read-the-docs">
-      Click on the Vite and React logos to learn more
-    </p>
+    <main>
+      <div className="left"></div>
+      <div className="center">
+        <Announcements />
+      </div>
+    </main>
   );
 }
 
