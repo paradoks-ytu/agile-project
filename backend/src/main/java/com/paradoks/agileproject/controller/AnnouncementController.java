@@ -21,7 +21,7 @@ public class AnnouncementController {
     }
 
     @GetMapping("/announcements")
-    public ResponseEntity<Map<String, Object>> getMovie(@RequestParam(name = "pageNumber", defaultValue = "0") Integer pageNumber,
+    public ResponseEntity<Map<String, Object>> getAnnouncements(@RequestParam(name = "pageNumber", defaultValue = "0") Integer pageNumber,
                                         @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize) {
         Page<AnnouncementResponse> pagedAnnouncementResponse = announcementService.getAnnouncements(pageNumber, pageSize);
         return ResponseEntity.ok(
