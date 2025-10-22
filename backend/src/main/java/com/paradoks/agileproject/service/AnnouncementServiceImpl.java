@@ -26,8 +26,9 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     @Override
     public Page<AnnouncementResponse> getAnnouncements(Integer pageNumber, Integer pageSize) {
         Pageable pageDetails = PageRequest.of(pageNumber, pageSize);
-        Page<Announcement> pagedAnnouncement;
-        pagedAnnouncement = announcementRepository.findActiveAnnouncements(pageDetails, Instant.now());
-        return responseMapper.toPagedResponse(pagedAnnouncement);
+        Page<Announcement> activeAnnouncements = announcementRepository
+                .findActiveAnnouncements(pageDetails, Instant.now());
+
+        return activeAnnouncements.map(responseMapper::toResponse);
     }
 }

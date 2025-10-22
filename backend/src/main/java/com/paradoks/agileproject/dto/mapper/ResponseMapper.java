@@ -7,5 +7,6 @@ import org.springframework.data.domain.Page;
 
 @Mapper
 public interface ResponseMapper {
-    Page<AnnouncementResponse> toPagedResponse(Page<Announcement> pagedAnnouncement);
+    AnnouncementResponse toResponse(Announcement announcement);
+    Announcement toEntity(AnnouncementResponse announcementResponse);
 }
