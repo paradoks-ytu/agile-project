@@ -1,4 +1,4 @@
-# paradoks
+# Paradoks
 
 ## Mimari Özeti
 
