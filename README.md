@@ -10,7 +10,7 @@
 
 |                | Kasım | Aralık | Ocak |
 |:---------------| :--- | :--- | :--- |
-| **Sürüm Adı**  | Kulüp Tanıtımları | Öğrenci İşlemleri | Etkinlikler ve Mesajlaşma |
+| **Sürüm**  | Kulüp Tanıtımları | Öğrenci İşlemleri | Etkinlikler ve Mesajlaşma |
 | **Amaç**       | Kulüplerin üyelik açabilmelerini ve tanıtımlarını yapabilmelerini sağlamak | Öğrencilerin üyelik açabilmelerini ve kulüplere katılabilmelerini sağlamak | Kulüplerin etkinliklerini paylaşabilmelerini ve kullanıcıların mesajlaşarak iletişim kurabilmelerini sağlamak |
 | **Özellikler** | - Kulüp üyelik işlemleri<br>- Özelleştirilmiş kulüp sayfaları | - Öğrenci üyelik işlemleri<br>- Kişisel öğrenci profilleri<br>- Kulüplere katılım işlemleri | - Kulüp etkinlikleri<br>- Kulüp gönderileri<br>- Kullanıcılar arası mesajlaşma |
 | **Metrikler**  | - Kulüp katılımları | - Önceki aya göre artmış kulüp katılım sayısı<br>- Öğrenci katılımları | - Önceki aya göre artmış öğrenci katılım sayısı<br>- Aktif kulüp paylaşımları ve etkinlikleri<br>- Kulüpler ve kullanıcılar arasında aktif iletişim |
