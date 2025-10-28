@@ -1,14 +1,14 @@
 package com.paradoks.agileproject.controller;
 
+import com.paradoks.agileproject.dto.request.PageableRequestParams;
 import com.paradoks.agileproject.dto.response.APPaged;
 import com.paradoks.agileproject.dto.response.AnnouncementResponse;
 import com.paradoks.agileproject.service.AnnouncementService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -19,12 +19,15 @@ public class AnnouncementController {
         this.announcementService = announcementService;
     }
 
+    @Operation(
+            summary = "Get paginated list of announcements",
+            description = "Returns a paginated list of announcements with their id, title, content, date, and severity"
+    )
     @GetMapping("/announcements")
     public ResponseEntity<APPaged<AnnouncementResponse>> getAnnouncements(
-            @RequestParam(name = "page", defaultValue = "0") Integer pageNumber,
-            @RequestParam(name = "size", defaultValue = "10") Integer pageSize
+            @Validated @ModelAttribute PageableRequestParams page
     ) {
-        Page<AnnouncementResponse> pagedAnnouncementResponse = announcementService.getAnnouncements(pageNumber, pageSize);
+        Page<AnnouncementResponse> pagedAnnouncementResponse = announcementService.getAnnouncements(page.getPage(), page.getSize());
         return ResponseEntity.ok(APPaged.from(pagedAnnouncementResponse));
     }
 }
