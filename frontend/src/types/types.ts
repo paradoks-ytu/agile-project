@@ -1,7 +1,7 @@
 export type PagedResponse<T> = {
-    data: T[];
-    total: number;
+    content: T[];
+    totalElements: number;
     page: number;
-    pageSize: number;
-    lastPage: boolean;
+    totalPages: number;
+    last: boolean;
 }
