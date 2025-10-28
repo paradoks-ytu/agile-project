@@ -7,13 +7,13 @@ import java.time.Instant;
 
 @Data
 public class AnnouncementResponse {
-    private Integer announcementId;
+    private Integer id;
 
     private String title;
 
     private String content;
 
-    private Instant creationDate;
+    private Instant date;
 
-    private AnnouncementSeverity announcementSeverity;
+    private AnnouncementSeverity severity;
 }

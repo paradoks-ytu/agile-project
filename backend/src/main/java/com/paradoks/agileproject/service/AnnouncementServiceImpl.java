@@ -1,6 +1,6 @@
 package com.paradoks.agileproject.service;
 
-import com.paradoks.agileproject.dto.mapper.ResponseMapper;
+import com.paradoks.agileproject.dto.mapper.AnnouncementMapper;
 import com.paradoks.agileproject.dto.response.AnnouncementResponse;
 import com.paradoks.agileproject.model.announcement.Announcement;
 import com.paradoks.agileproject.repository.AnnouncementRepository;
@@ -10,17 +10,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.stream.Collectors;
 
 @Service
 public class AnnouncementServiceImpl implements AnnouncementService {
 
     private final AnnouncementRepository announcementRepository;
-    private final ResponseMapper responseMapper;
+    private final AnnouncementMapper announcementMapper;
 
-    public AnnouncementServiceImpl(AnnouncementRepository announcementRepository, ResponseMapper responseMapper) {
+    public AnnouncementServiceImpl(AnnouncementRepository announcementRepository, AnnouncementMapper announcementMapper) {
         this.announcementRepository = announcementRepository;
-        this.responseMapper = responseMapper;
+        this.announcementMapper = announcementMapper;
     }
 
     @Override
@@ -29,6 +28,6 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         Page<Announcement> activeAnnouncements = announcementRepository
                 .findActiveAnnouncements(pageDetails, Instant.now());
 
-        return activeAnnouncements.map(responseMapper::toResponse);
+        return activeAnnouncements.map(announcementMapper::toResponse);
     }
 }

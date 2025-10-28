@@ -17,7 +17,7 @@ import java.time.Instant;
 public class Announcement {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer announcementId;
+    private Integer id;
 
     private String title;
 
@@ -31,6 +31,6 @@ public class Announcement {
     private Instant endDate;
 
     @Enumerated(EnumType.STRING)
-    private AnnouncementSeverity announcementSeverity;
+    private AnnouncementSeverity severity;
 }
 
