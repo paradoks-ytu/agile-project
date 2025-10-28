@@ -1,5 +1,5 @@
-import type { Announcement } from "../types/announcementsTypes";
-import type { PagedResponse } from "../types/types";
+import type { Announcement } from "@/types/announcementsTypes";
+import type { PagedResponse } from "@/types/types";
 import { API_URL, sizedParams } from "./service";
 
 
@@ -8,7 +8,9 @@ export const fetchAnnouncements = async (
   size: number = 10
 ): Promise<PagedResponse<Announcement>> => {
   const params = sizedParams(page, size);
-  
-  return await fetch(`${API_URL}/announcements${params.toString()}`)
+  const url = new URL(`${API_URL}/announcements`);
+  url.search = new URLSearchParams(params).toString();
+
+  return await fetch(url)
     .then((res) => res.json());
 };

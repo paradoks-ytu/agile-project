@@ -2,44 +2,6 @@ import React from "react";
 import type { Announcement } from "@/types/announcementsTypes";
 import { fetchAnnouncements } from "@/service/announcementsService";
 
-const mockAnnouncements: Announcement[] = [
-  {
-    id: 1,
-    title: "System Maintenance",
-    content: "The system will be down for maintenance at 10 PM.",
-    date: "2025-10-22T10:00:00Z",
-    severity: "INFO",
-  },
-  {
-    id: 2,
-    title: "Password Expiry",
-    content: "Your password will expire in 3 days.",
-    date: "2025-10-21T08:30:00Z",
-    severity: "WARNING",
-  },
-  {
-    id: 3,
-    title: "Data Breach Alert",
-    content: "Critical vulnerability detected, immediate action required.",
-    date: "2025-10-20T14:45:00Z",
-    severity: "CRITICAL",
-  },
-  {
-    id: 4,
-    title: "New Feature Release",
-    content: "A new feature has been released. Check it out!",
-    date: "2025-10-19T12:00:00Z",
-    severity: "INFO",
-  },
-  {
-    id: 5,
-    title: "Server Load High",
-    content: "Server load is unusually high. Monitoring closely.",
-    date: "2025-10-22T09:15:00Z",
-    severity: "WARNING",
-  },
-];
-
 export default function Announcement() {
   const [announcements, setAnnouncements] = React.useState<Announcement[]>([]);
   const [loading, setLoading] = React.useState<boolean>(true);
@@ -55,8 +17,8 @@ export default function Announcement() {
 
         while (!done) {
           const data = await fetchAnnouncements(pageNum);
-          allData = [...allData, ...data.data];
-          done = data.lastPage;
+          allData = [...allData, ...data.content];
+          done = data.last;
           pageNum++;
         }
 
@@ -68,9 +30,7 @@ export default function Announcement() {
       }
     };
 
-    // fetchAnnouncementsEffect();
-    setAnnouncements(mockAnnouncements);
-    setLoading(false);
+    fetchAnnouncementsEffect();
   }, []);
 
   if (loading) return null;
