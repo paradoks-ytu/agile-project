@@ -27,7 +27,6 @@ public class Announcement {
     @Column(updatable = false)
     private Instant creationDate;
 
-    @Column(updatable = false)
     private Instant endDate;
 
     @Enumerated(EnumType.STRING)
