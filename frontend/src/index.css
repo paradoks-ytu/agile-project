@@ -1,0 +1,189 @@
+:root {
+  /* Letterboxd-Inspired Dark Palette */
+  --color-bg-main: #14181C;
+  /* Deep Dark Grey (Letterboxd BG) */
+  --color-bg-panel: #1B2228;
+  /* Darker Panel Grey */
+  --color-bg-sidebar: #161B22;
+  /* Very Dark Sidebar */
+
+  --color-primary: #27AE60;
+  /* Softer Green (Nephritis) */
+  --color-primary-dark: #219150;
+  /* Darker Green for hover */
+  --color-secondary: #40BCF4;
+  /* Letterboxd Blue */
+  --color-accent: #FF8000;
+  /* Letterboxd Orange */
+
+  --color-text-main: #FFFFFF;
+  /* Pure White */
+  --color-text-muted: #99AABB;
+  /* Muted Blue-Grey */
+  --color-border: #2C3440;
+  /* Darker Border */
+  --color-error: #FF5C5C;
+  /* Soft Red */
+
+  /* Sidebar Width */
+  --sidebar-width: 260px;
+
+  /* Spacing */
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 1.5rem;
+  --spacing-lg: 2rem;
+  --spacing-xl: 3rem;
+
+  /* Radius */
+  --radius-sm: 4px;
+  /* Sharper corners for cinematic feel */
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+
+  /* Transitions */
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--color-bg-main);
+  color: var(--color-text-main);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Layout Utilities */
+.layout-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  background-color: var(--color-bg-main);
+  /* Optional: Subtle texture or gradient could go here */
+}
+
+.mobile-wrapper {
+  width: 100%;
+  max-width: 520px;
+  /* Slightly wider for better card feel */
+  background-color: var(--color-bg-main);
+  /* Match BG for seamless look, or use panel color */
+  min-height: 100vh;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid rgba(255, 255, 255, 0.05);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Typography */
+h1,
+h2,
+h3 {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--color-text-main);
+}
+
+h1 {
+  font-size: 2rem;
+}
+
+h2 {
+  font-size: 1.5rem;
+}
+
+h3 {
+  font-size: 1.25rem;
+}
+
+/* Form Elements */
+.form-group {
+  margin-bottom: var(--spacing-md);
+}
+
+.form-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-xs);
+}
+
+.form-input {
+  width: 100%;
+  padding: var(--spacing-sm);
+  border: 1px solid var(--color-bg-panel);
+  /* Subtle border initially */
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  transition: all var(--transition-fast);
+  background-color: var(--color-bg-panel);
+  color: var(--color-text-main);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--color-text-muted);
+  background-color: #384250;
+  /* Slightly lighter on focus */
+}
+
+.form-input::placeholder {
+  color: rgba(153, 170, 187, 0.5);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: none;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.btn-primary {
+  background-color: var(--color-primary);
+  color: #FFFFFF;
+  /* White text on green */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.btn-primary:hover {
+  background-color: var(--color-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 224, 84, 0.3);
+}
+
+.btn-primary:disabled {
+  background-color: var(--color-bg-panel);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-full {
+  width: 100%;
+}
