@@ -14,4 +14,5 @@ public interface SessionService {
     Optional<SessionModel> getActiveSession(ClubModel club);
 
     Optional<SessionModel> getActiveSessionByEmail(String email);
+    Optional<SessionModel> getCurrentSession();
 }

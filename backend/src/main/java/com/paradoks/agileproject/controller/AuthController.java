@@ -1,8 +1,10 @@
 package com.paradoks.agileproject.controller;
 
+import com.paradoks.agileproject.dto.mapper.ClubMapper;
 import com.paradoks.agileproject.dto.request.LoginRequest;
 import com.paradoks.agileproject.dto.request.RegisterRequest;
 import com.paradoks.agileproject.dto.response.ApiResponse;
+import com.paradoks.agileproject.dto.response.ClubResponse;
 import com.paradoks.agileproject.model.SessionModel;
 import com.paradoks.agileproject.service.ClubService;
 import com.paradoks.agileproject.service.SessionService;
@@ -11,7 +13,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,10 +28,12 @@ public class AuthController {
 
     private final ClubService clubService;
     private final SessionService sessionService;
+    private final ClubMapper clubMapper;
 
-    public AuthController(ClubService clubService, SessionService sessionService) {
+    public AuthController(ClubService clubService, SessionService sessionService, ClubMapper clubMapper) {
         this.clubService = clubService;
         this.sessionService = sessionService;
+        this.clubMapper = clubMapper;
     }
 
     @Operation(summary = "Yeni kullanıcı kaydı oluşturur")
@@ -59,4 +65,14 @@ public class AuthController {
         response.addCookie(cookie);
 
         return ResponseEntity.ok(new ApiResponse(true, "Giriş başarılı"));
-    }}
+    }
+
+    @Operation(summary = "Mevcut kullanıcının bilgilerini döner")
+    @GetMapping("/me")
+    public ResponseEntity<ClubResponse> me() {
+        SessionModel session = sessionService.getCurrentSession()
+                .orElseThrow(() -> new RuntimeException("Session bulunamadı"));
+
+        return ResponseEntity.ok(clubMapper.clubToClubResponse(clubService.getClub(session.getClub().getId())));
+    }
+}

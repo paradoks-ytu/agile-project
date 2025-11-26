@@ -24,6 +24,12 @@ public class ClubServiceImpl implements ClubService {
     }
 
     @Override
+    public ClubModel getClub(Long clubId) {
+        return clubRepository.findById(clubId)
+                .orElseThrow(() -> new RuntimeException("Club not found"));
+    }
+
+    @Override
     public ApiResponse register(RegisterRequest request) {
         if (clubRepository.existsByName(request.getClubName())) {
             throw new RuntimeException("no found");

@@ -9,6 +9,9 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.Authentication;
+
 @Service
 public class SessionServiceImpl implements SessionService {
     private final SessionRepository sessionRepository;
@@ -17,6 +20,16 @@ public class SessionServiceImpl implements SessionService {
     public SessionServiceImpl(SessionRepository sessionRepository, ClubRepository clubRepository) {
         this.sessionRepository = sessionRepository;
         this.clubRepository = clubRepository;
+    }
+
+    @Override
+    public Optional<SessionModel> getCurrentSession() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return Optional.empty();
+        }
+        String token = (String) authentication.getPrincipal();
+        return sessionRepository.findByTokenAndActiveTrue(token);
     }
 
     @Override
