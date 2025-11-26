@@ -5,6 +5,7 @@ import DashboardPage from './app/admin/dashboard/page';
 import LandingPage from './app/landing/page';
 import LoginPage from './app/auth/login/page';
 import ProfilePage from './app/profile/page';
+import ClubsPage from './app/clubs/page';
 
 function App() {
     return (
@@ -14,6 +15,7 @@ function App() {
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/myprofile" element={<ProfilePage />} />
+                <Route path="/clubs" element={<ClubsPage />} />
 
                 {/* Admin Routes */}
                 <Route path="/admin" element={<AdminLayout />}>

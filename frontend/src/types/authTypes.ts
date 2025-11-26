@@ -26,3 +26,12 @@ export interface ClubUpdateRequest {
     description?: string;
     tags?: string[];
 }
+
+export interface APPaged<T> {
+    content: T[];
+    page: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
+    last: boolean;
+}
