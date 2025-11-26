@@ -13,3 +13,16 @@ export interface ApiResponse {
     success: boolean;
     message: string;
 }
+
+export interface ClubResponse {
+    id: number;
+    name: string;
+    description: string;
+    tags: string[];
+}
+
+export interface ClubUpdateRequest {
+    name?: string;
+    description?: string;
+    tags?: string[];
+}

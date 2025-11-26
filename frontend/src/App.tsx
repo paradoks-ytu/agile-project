@@ -1,14 +1,19 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import AdminLayout from './app/admin/layout';
 import ClubRegistrationPage from './app/admin/register/page';
 import DashboardPage from './app/admin/dashboard/page';
+import LandingPage from './app/landing/page';
+import LoginPage from './app/auth/login/page';
+import ProfilePage from './app/profile/page';
 
 function App() {
     return (
         <BrowserRouter>
             <Routes>
-                {/* Redirect root to admin panel dashboard */}
-                <Route path="/" element={<Navigate to="/admin/panel" replace />} />
+                {/* Public Routes */}
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/myprofile" element={<ProfilePage />} />
 
                 {/* Admin Routes */}
                 <Route path="/admin" element={<AdminLayout />}>
