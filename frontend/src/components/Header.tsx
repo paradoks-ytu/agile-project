@@ -39,19 +39,13 @@ const Header: React.FC = () => {
             alignItems: 'center'
         }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xl)' }}>
-                {/* Brand */}
                 <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', textDecoration: 'none', color: 'white', transform: 'translateY(-2px)' }}>
-                    <div style={{
+                    <img src="/uniclubs-logo.png" alt="UniClubs Logo" style={{
                         width: '32px',
                         height: '32px',
-                        background: 'var(--color-primary)',
-                        borderRadius: 'var(--radius-sm)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontWeight: 'bold',
-                        color: 'white'
-                    }}>U</div>
+                        objectFit: 'contain',
+                        borderRadius: 'var(--radius-sm)' // Added border radius to match the previous look if needed, or just for style
+                    }} />
                     <span style={{ fontSize: '1.5rem', fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1 }}>UniClubs</span>
                 </Link>
 
