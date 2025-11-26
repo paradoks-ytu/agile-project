@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import * as authService from '@/service/authService';
 import type { ClubResponse } from '@/types/authTypes';
+import Header from '@/components/Header';
 
 // Icons
 const EditIcon = () => (
@@ -51,11 +52,6 @@ const ProfilePage: React.FC = () => {
         };
         fetchUser();
     }, [navigate]);
-
-    const handleLogout = () => {
-        authService.logout();
-        navigate('/');
-    };
 
     const handleEnterEditMode = () => {
         if (user) {
@@ -111,88 +107,7 @@ const ProfilePage: React.FC = () => {
             flexDirection: 'column'
         }}>
             {/* Navbar */}
-            <header style={{
-                padding: 'var(--spacing-lg) var(--spacing-xl)',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-            }}>
-                {/* Brand */}
-                <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', textDecoration: 'none', color: 'white' }}>
-                    <div style={{
-                        width: '32px',
-                        height: '32px',
-                        background: 'var(--color-primary)',
-                        borderRadius: 'var(--radius-sm)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontWeight: 'bold',
-                        color: 'white'
-                    }}>U</div>
-                    <span style={{ fontSize: '1.5rem', fontWeight: 700, letterSpacing: '-0.02em' }}>UniClubs</span>
-                </Link>
-
-                {/* Actions */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
-                    <Link
-                        to="/myprofile"
-                        style={{
-                            width: '40px',
-                            height: '40px',
-                            borderRadius: '50%',
-                            backgroundColor: 'var(--color-bg-panel)',
-                            border: '1px solid var(--color-border)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: 'white',
-                            fontSize: '1rem',
-                            fontWeight: 600,
-                            textDecoration: 'none',
-                            cursor: 'pointer'
-                        }}
-                    >
-                        {user.name.charAt(0).toUpperCase()}
-                    </Link>
-
-                    <Link
-                        to="/myprofile"
-                        className="btn"
-                        style={{
-                            backgroundColor: 'var(--color-bg-panel)',
-                            color: 'white',
-                            border: '1px solid var(--color-border)',
-                            padding: '0.5rem 1.5rem',
-                            borderRadius: 'var(--radius-full)',
-                            textDecoration: 'none',
-                            fontWeight: 600,
-                            fontSize: '0.9rem',
-                            transition: 'all var(--transition-fast)'
-                        }}
-                    >
-                        Profil
-                    </Link>
-
-                    <button
-                        onClick={handleLogout}
-                        className="btn"
-                        style={{
-                            backgroundColor: 'transparent',
-                            color: 'var(--color-error)',
-                            border: '1px solid var(--color-error)',
-                            padding: '0.5rem 1.5rem',
-                            borderRadius: 'var(--radius-full)',
-                            fontWeight: 600,
-                            fontSize: '0.9rem',
-                            cursor: 'pointer',
-                            transition: 'all var(--transition-fast)'
-                        }}
-                    >
-                        Çıkış Yap
-                    </button>
-                </div>
-            </header>
+            <Header />
 
             <main style={{ flex: 1, maxWidth: '900px', width: '100%', margin: '0 auto', padding: 'var(--spacing-xl)' }}>
 

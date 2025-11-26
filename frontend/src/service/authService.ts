@@ -1,5 +1,5 @@
 import { API_URL } from "./service";
-import type { RegisterRequest, LoginRequest, ApiResponse, ClubResponse, ClubUpdateRequest } from '@/types/authTypes';
+import type { RegisterRequest, LoginRequest, ApiResponse, ClubResponse, ClubUpdateRequest, APPaged } from '@/types/authTypes';
 
 export const register = async (request: RegisterRequest): Promise<ApiResponse> => {
     const response = await fetch(`${API_URL}/auth/register`, {
@@ -94,4 +94,19 @@ export const logout = () => {
 
 export const isAuthenticated = (): boolean => {
     return localStorage.getItem('user_session') === 'active';
+};
+
+export const getClubs = async (page: number = 0, size: number = 30): Promise<APPaged<ClubResponse>> => {
+    const response = await fetch(`${API_URL}/clubs?page=${page}&size=${size}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch clubs');
+    }
+
+    return response.json();
 };
