@@ -5,13 +5,14 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import org.hibernate.validator.constraints.Length;
 
 @Data
 public class RegisterRequest {
-
     @Schema(description = "Kullanıcının e-posta adresi", example = "example@mail.com")
     @NotBlank(message = "E-posta boş olamaz")
-    @Email(message = "Geçerli bir e-posta adresi girin")
+    @Length(max = 128, message = "E-posta fazla uzun")
+    @Email(message = "Geçerli bir e-posta adresi girin", regexp = "^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")
     private String email;
 
     @Schema(description = "Kayıt olunacak kulübün adı", example = "Galatasaray SK")
