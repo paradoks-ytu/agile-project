@@ -1,5 +1,6 @@
 package com.paradoks.agileproject.service;
 
+import com.paradoks.agileproject.dto.request.ClubUpdateRequest;
 import com.paradoks.agileproject.dto.request.LoginRequest;
 import com.paradoks.agileproject.dto.request.RegisterRequest;
 import com.paradoks.agileproject.dto.response.ApiResponse;
@@ -11,6 +12,11 @@ import com.paradoks.agileproject.model.SessionModel;
 import com.paradoks.agileproject.repository.ClubRepository;
 import com.paradoks.agileproject.utils.PasswordUtils;
 import org.springframework.stereotype.Service;
+import com.paradoks.agileproject.dto.request.PageableRequestParams;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.util.Optional;
 
@@ -30,6 +36,27 @@ public class ClubServiceImpl implements ClubService {
     public ClubModel getClub(Long clubId) {
         return clubRepository.findById(clubId)
                 .orElseThrow(() -> new NotFoundException("Club not found"));
+    }
+
+    @Override
+    public ClubModel updateClub(Long clubId, ClubUpdateRequest request) {
+        ClubModel club = getClub(clubId);
+        if (request.getName() != null) {
+            club.setName(request.getName());
+        }
+        if (request.getDescription() != null) {
+            club.setDescription(request.getDescription());
+        }
+        if (request.getTags() != null) {
+            club.setTags(request.getTags());
+        }
+        return clubRepository.save(club);
+    }
+
+    @Override
+    public Page<ClubModel> listClubs(PageableRequestParams params) {
+        Pageable pageable = PageRequest.of(params.getPage(), params.getSize(), Sort.by(params.getSortBy()));
+        return clubRepository.findAll(pageable);
     }
 
     @Override

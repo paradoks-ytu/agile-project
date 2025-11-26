@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Entity(name = "clubs")
 @Getter
 @Setter
@@ -17,6 +19,11 @@ public class ClubModel {
 
     @Column(columnDefinition = "TEXT")
     private String description;
+
+    @ElementCollection
+    @CollectionTable(name = "club_tags", joinColumns = @JoinColumn(name = "club_id"))
+    @Column(name = "tag")
+    private List<String> tags;
 
     @Column(nullable = false)
     private String email;
