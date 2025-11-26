@@ -22,21 +22,26 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
+import org.springframework.test.context.TestConstructor;
+
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 public class AnnouncementTest {
-    @Autowired
-    private MockMvc mockMvc;
+    private final MockMvc mockMvc;
+    private final AnnouncementRepository announcementRepository;
 
-    @Autowired
-    private AnnouncementRepository announcementRepository;
+    public AnnouncementTest(MockMvc mockMvc, AnnouncementRepository announcementRepository) {
+        this.mockMvc = mockMvc;
+        this.announcementRepository = announcementRepository;
+    }
 
     @Test
     public void testActiveAnnouncements() throws Exception {
         Announcement announcement = Announcement.builder()
                 .title("Cok onemli bir uyari mesaji")
-                .announcementSeverity(AnnouncementSeverity.WARNING)
+                .severity(AnnouncementSeverity.WARNING)
                 .content("Yakinda Hizmetinizdeyiz!")
                 .endDate(Instant.now().plus(7, ChronoUnit.DAYS))
                 .build();
@@ -46,9 +51,9 @@ public class AnnouncementTest {
         ResultActions result = mockMvc.perform(get("/api/v1/announcements?pageNumber=0&pageSize=10"));
         result.andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.content[0].announcementId").value(announcement.getAnnouncementId()))
+                .andExpect(jsonPath("$.content[0].id").value(announcement.getId()))
                 .andExpect(jsonPath("$.content[0].title").value(announcement.getTitle()))
                 .andExpect(jsonPath("$.content[0].content").value(announcement.getContent()))
-                .andExpect(jsonPath("$.content[0].announcementSeverity").value(announcement.getAnnouncementSeverity().toString()));
+                .andExpect(jsonPath("$.content[0].severity").value(announcement.getSeverity().toString()));
     }
 }
