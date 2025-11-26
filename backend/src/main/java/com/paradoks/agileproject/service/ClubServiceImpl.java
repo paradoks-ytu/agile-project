@@ -3,6 +3,9 @@ package com.paradoks.agileproject.service;
 import com.paradoks.agileproject.dto.request.LoginRequest;
 import com.paradoks.agileproject.dto.request.RegisterRequest;
 import com.paradoks.agileproject.dto.response.ApiResponse;
+import com.paradoks.agileproject.exception.BadRequestException;
+import com.paradoks.agileproject.exception.NotFoundException;
+import com.paradoks.agileproject.exception.UnauthorizedException;
 import com.paradoks.agileproject.model.ClubModel;
 import com.paradoks.agileproject.model.SessionModel;
 import com.paradoks.agileproject.repository.ClubRepository;
@@ -26,17 +29,17 @@ public class ClubServiceImpl implements ClubService {
     @Override
     public ClubModel getClub(Long clubId) {
         return clubRepository.findById(clubId)
-                .orElseThrow(() -> new RuntimeException("Club not found"));
+                .orElseThrow(() -> new NotFoundException("Club not found"));
     }
 
     @Override
     public ApiResponse register(RegisterRequest request) {
         if (clubRepository.existsByName(request.getClubName())) {
-            throw new RuntimeException("no found");
+            throw new BadRequestException("Club with this name already exists");
         }
 
         if (clubRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RuntimeException("no found");
+            throw new BadRequestException("Club with this email already exists");
         }
 
         ClubModel club = new ClubModel();
@@ -53,13 +56,13 @@ public class ClubServiceImpl implements ClubService {
         Optional<ClubModel> clubOpt = clubRepository.findByEmail(request.getEmail());
 
         if (clubOpt.isEmpty()) {
-            throw new RuntimeException("no found");
+            throw new NotFoundException("Club not found");
         }
 
         ClubModel club = clubOpt.get();
 
         if (!passwordUtils.checkPassword(request.getPassword(), club.getPassword())) {
-            throw new RuntimeException("no found");
+            throw new UnauthorizedException("Invalid credentials");
         }
 
         SessionModel session = sessionService.createSession(club, 24); // 24 saat geçerli

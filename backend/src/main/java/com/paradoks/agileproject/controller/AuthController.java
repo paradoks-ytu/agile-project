@@ -5,6 +5,8 @@ import com.paradoks.agileproject.dto.request.LoginRequest;
 import com.paradoks.agileproject.dto.request.RegisterRequest;
 import com.paradoks.agileproject.dto.response.ApiResponse;
 import com.paradoks.agileproject.dto.response.ClubResponse;
+import com.paradoks.agileproject.exception.NotFoundException;
+import com.paradoks.agileproject.exception.UnauthorizedException;
 import com.paradoks.agileproject.model.SessionModel;
 import com.paradoks.agileproject.service.ClubService;
 import com.paradoks.agileproject.service.SessionService;
@@ -55,7 +57,7 @@ public class AuthController {
 
         // Kullanıcı bilgilerini al
         SessionModel session = sessionService.getActiveSessionByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Session oluşturulamadı"));
+                .orElseThrow(() -> new NotFoundException("Session could not be created"));
 
         // Cookie oluştur
         Cookie cookie = new Cookie("SESSION_TOKEN", session.getToken());
@@ -71,7 +73,7 @@ public class AuthController {
     @GetMapping("/me")
     public ResponseEntity<ClubResponse> me() {
         SessionModel session = sessionService.getCurrentSession()
-                .orElseThrow(() -> new RuntimeException("Session bulunamadı"));
+                .orElseThrow(() -> new UnauthorizedException("No active session found"));
 
         return ResponseEntity.ok(clubMapper.clubToClubResponse(clubService.getClub(session.getClub().getId())));
     }
