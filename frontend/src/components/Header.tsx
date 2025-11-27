@@ -40,13 +40,13 @@ const Header: React.FC = () => {
         }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xl)' }}>
                 <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', textDecoration: 'none', color: 'white', transform: 'translateY(-2px)' }}>
-                    <img src="/uniclubs-logo.png" alt="UniClubs Logo" style={{
+                    <img src="/uninest-logo.png" alt="UniNest Logo" style={{
                         width: '32px',
                         height: '32px',
                         objectFit: 'contain',
                         borderRadius: 'var(--radius-sm)' // Added border radius to match the previous look if needed, or just for style
                     }} />
-                    <span style={{ fontSize: '1.5rem', fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1 }}>UniClubs</span>
+                    <span style={{ fontSize: '1.5rem', fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1 }}>UniNest</span>
                 </Link>
 
                 {/* Clubs Button (Added) */}

@@ -40,7 +40,7 @@ const Sidebar: React.FC = () => {
                     fontWeight: 'bold',
                     color: 'white'
                 }}>U</div>
-                <span style={{ fontSize: '1.25rem', fontWeight: 700, letterSpacing: '-0.02em', color: 'white' }}>UniClubs</span>
+                <span style={{ fontSize: '1.25rem', fontWeight: 700, letterSpacing: '-0.02em', color: 'white' }}>UniNest</span>
             </div>
 
             {/* Navigation */}
