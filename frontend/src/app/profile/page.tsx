@@ -416,7 +416,7 @@ const ProfilePage: React.FC = () => {
                 fontSize: '0.875rem',
                 borderTop: '1px solid var(--color-border)'
             }}>
-                <p>UniClubs &copy; 2025 Paradoks.</p>
+                <p>UniNest &copy; 2025 Paradoks.</p>
             </footer>
         </div>
     );

@@ -200,7 +200,7 @@ const LoginPage: React.FC = () => {
                 backgroundColor: 'var(--color-bg-main)',
                 width: '100%'
             }}>
-                <p>UniClubs &copy; 2025 Paradoks.</p>
+                <p>UniNest &copy; 2025 Paradoks.</p>
             </footer>
         </div>
     );

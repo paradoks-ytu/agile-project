@@ -47,7 +47,7 @@ const AdminLayout: React.FC = () => {
                     display: 'flex',
                     justifyContent: 'space-between'
                 }}>
-                    <span>UniClubs &copy; 2025 Paradoks.</span>
+                    <span>UniNest &copy; 2025 Paradoks.</span>
                 </footer>
             </main>
         </div>
