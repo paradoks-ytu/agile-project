@@ -15,6 +15,7 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.paradoks.agileproject.dto.request.PageableRequestParams;
 
@@ -43,10 +44,27 @@ public class ClubController {
         return ResponseEntity.ok(clubMapper.clubToClubResponse(clubService.updateClub(clubId, request)));
     }
 
+    @Operation(summary = "Kulüp profil resmini günceller")
+    @PutMapping("/profile-picture")
+    public ResponseEntity<ClubResponse> updateProfilePicture(
+            @RequestParam("profilePicture") MultipartFile profilePicture
+    ) {
+        SessionModel currentSession = sessionService.getCurrentSession().orElseThrow(() -> new UnauthorizedException("Not Authenticated"));
+        Long clubId = currentSession.getClub().getId();
+        return ResponseEntity.ok(clubMapper.clubToClubResponse(clubService.updateProfilePicture(clubId, profilePicture)));
+    }
+
     @Operation(summary = "Kulüpleri listeler")
     @GetMapping
     public ResponseEntity<APPaged<ClubResponse>> listClubs(@Valid PageableRequestParams params) {
         Page<ClubModel> clubs = clubService.listClubs(params);
         return ResponseEntity.ok(APPaged.from(clubs.map(clubMapper::clubToClubResponse)));
+    }
+
+    @Operation(summary = "Belirli id'ye sahip kulübü getirir")
+    @GetMapping("/{id}")
+    public ResponseEntity<ClubResponse> getClubWithId(@RequestParam Long id) {
+        ClubResponse response = clubMapper.clubToClubResponse(clubService.getClub(id));
+        return ResponseEntity.ok(response);
     }
 }
