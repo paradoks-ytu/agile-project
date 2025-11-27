@@ -10,4 +10,5 @@ public class ClubResponse {
     private String name;
     private String description;
     private List<String> tags;
+    private String profilePicture;
 }

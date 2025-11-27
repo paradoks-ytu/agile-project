@@ -30,4 +30,6 @@ public class ClubModel {
 
     @Column(nullable = false)
     private String password;
+
+    private String profilePicture;
 }
