@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -45,13 +46,23 @@ public class ClubController {
     }
 
     @Operation(summary = "Kulüp profil resmini günceller")
-    @PutMapping("/profile-picture")
+    @PutMapping(value = "/profile-picture", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ClubResponse> updateProfilePicture(
             @RequestParam("profilePicture") MultipartFile profilePicture
     ) {
         SessionModel currentSession = sessionService.getCurrentSession().orElseThrow(() -> new UnauthorizedException("Not Authenticated"));
         Long clubId = currentSession.getClub().getId();
         return ResponseEntity.ok(clubMapper.clubToClubResponse(clubService.updateProfilePicture(clubId, profilePicture)));
+    }
+
+    @Operation(summary = "Kulüp banner'ını günceller")
+    @PutMapping(value = "/banner", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ClubResponse> updateBanner(
+            @RequestParam("banner") MultipartFile banner
+    ) {
+        SessionModel currentSession = sessionService.getCurrentSession().orElseThrow(() -> new UnauthorizedException("Not Authenticated"));
+        Long clubId = currentSession.getClub().getId();
+        return ResponseEntity.ok(clubMapper.clubToClubResponse(clubService.updateBanner(clubId, banner)));
     }
 
     @Operation(summary = "Kulüpleri listeler")
@@ -63,7 +74,7 @@ public class ClubController {
 
     @Operation(summary = "Belirli id'ye sahip kulübü getirir")
     @GetMapping("/{id}")
-    public ResponseEntity<ClubResponse> getClubWithId(@RequestParam Long id) {
+    public ResponseEntity<ClubResponse> getClubWithId(@PathVariable Long id) {
         ClubResponse response = clubMapper.clubToClubResponse(clubService.getClub(id));
         return ResponseEntity.ok(response);
     }
