@@ -32,4 +32,6 @@ public class ClubModel {
     private String password;
 
     private String profilePicture;
+
+    private String banner;
 }

@@ -19,4 +19,5 @@ public interface ClubService {
     ClubModel updateClub(Long clubId, ClubUpdateRequest request);
     Page<ClubModel> listClubs(PageableRequestParams params);
     ClubModel updateProfilePicture(Long clubId, MultipartFile profilePicture);
+    ClubModel updateBanner(Long clubId, MultipartFile banner);
 }
