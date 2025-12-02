@@ -25,12 +25,16 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -39,6 +43,8 @@ public class ClubServiceImpl implements ClubService {
     private final ClubRepository clubRepository;
     private final PasswordUtils passwordUtils;
     private final SessionService sessionService;
+
+    private final static List<String> ALLOWED_EXTENSIONS = List.of("png", "jpg");
 
     @Value("${upload-dir}")
     private String uploadDir;
@@ -133,8 +139,10 @@ public class ClubServiceImpl implements ClubService {
         // Delete old profile picture if it exists
         if (club.getProfilePicture() != null) {
             try {
-                String oldFileName = club.getProfilePicture().substring(club.getProfilePicture().lastIndexOf('/') + 1);
-                Path oldFilePath = Paths.get(uploadDir, oldFileName);
+                String oldFileName = club.getProfilePicture();
+                File file = new File(oldFileName);
+                String fileName = file.getName();
+                Path oldFilePath = Paths.get(uploadDir, fileName);
                 Files.deleteIfExists(oldFilePath);
             } catch (IOException e) {
                 // Log the exception, but don't block the upload
@@ -144,6 +152,11 @@ public class ClubServiceImpl implements ClubService {
 
 
         try {
+            String imageFormat = getImageFormat(profilePicture);
+            if (imageFormat == null || !ALLOWED_EXTENSIONS.contains(imageFormat)) {
+                throw new FileUploadException("file format not allowed, use one of these: [\"png\", \"jpg\"]");
+            }
+
             BufferedImage originalImage = ImageIO.read(profilePicture.getInputStream());
 
             // Crop to a square from the center of the image
@@ -155,7 +168,7 @@ public class ClubServiceImpl implements ClubService {
             // Resize to 200x200
             BufferedImage resizedImage = Scalr.resize(croppedImage, 200);
 
-            String fileUrl = copyFileToDisk(resizedImage);
+            String fileUrl = copyFileToDisk(resizedImage, imageFormat);
 
             club.setProfilePicture(fileUrl);
             return clubRepository.save(club);
@@ -183,8 +196,10 @@ public class ClubServiceImpl implements ClubService {
         // Delete old banner if it exists
         if (club.getBanner() != null) {
             try {
-                String oldFileName = club.getBanner().substring(club.getBanner().lastIndexOf('/') + 1);
-                Path oldFilePath = Paths.get(uploadDir, oldFileName);
+                String oldFileName = club.getBanner();
+                File file = new File(oldFileName);
+                String fileName = file.getName();
+                Path oldFilePath = Paths.get(uploadDir, fileName);
                 Files.deleteIfExists(oldFilePath);
             } catch (IOException e) {
                 // Log the exception, but don't block the upload
@@ -194,12 +209,17 @@ public class ClubServiceImpl implements ClubService {
 
 
         try {
+            String imageFormat = getImageFormat(banner);
+            if (imageFormat == null ||  !ALLOWED_EXTENSIONS.contains(imageFormat)) {
+                throw new FileUploadException("file format not allowed, use one of these: [\"png\", \"jpg\"]");
+            }
+
             BufferedImage originalImage = ImageIO.read(banner.getInputStream());
 
             // Resize to 1200x400
             BufferedImage resizedImage = Scalr.resize(originalImage, 1200, 400);
 
-            String fileUrl = copyFileToDisk(resizedImage);
+            String fileUrl = copyFileToDisk(resizedImage, imageFormat);
 
             club.setBanner(fileUrl);
             return clubRepository.save(club);
@@ -208,22 +228,44 @@ public class ClubServiceImpl implements ClubService {
         }
     }
 
-    @NotNull
-    private String copyFileToDisk(BufferedImage resizedImage) throws IOException {
-        String fileName = UUID.randomUUID() + ".webp";
-        Path uploadPath = Paths.get(uploadDir);
-        if (!Files.exists(uploadPath)) {
-            Files.createDirectories(uploadPath);
+    public String getImageFormat(MultipartFile file) throws IOException {
+        try (ImageInputStream iis =
+                     ImageIO.createImageInputStream(file.getInputStream())) {
+
+            Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
+
+            if (!readers.hasNext()) {
+                return null;
+            }
+
+            ImageReader reader = readers.next();
+            return reader.getFormatName().toLowerCase();
         }
-        File file = new File(uploadDir, fileName);
-        if (!ImageIO.write(resizedImage, "webp", file)) {
-            throw new FileUploadException("Failed to write image");
+    }
+
+
+    @NotNull
+    private String copyFileToDisk(BufferedImage resizedImage, String format) {
+        String fileName = UUID.randomUUID() + "." + format;
+        Path uploadPath = Paths.get(uploadDir);
+
+        try {
+
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+            File file = new File(uploadDir, fileName);
+
+            if (!ImageIO.write(resizedImage, format, file)) {
+                throw new FileUploadException("Failed to write image");
+            }
+
+        } catch (IOException e) {
+            System.err.println(e);
+            throw new BadRequestException("Failed to create image");
         }
 
-        return ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/files/")
-                .path(fileName)
-                .toUriString();
+        return "/" + uploadPath + "/" + fileName;
     }
 
 }
