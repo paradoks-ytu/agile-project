@@ -46,7 +46,7 @@ public class ClubController {
     }
 
     @Operation(summary = "Kulüp profil resmini günceller")
-    @PutMapping(value = "/profile-picture", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/profile-picture", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ClubResponse> updateProfilePicture(
             @RequestParam("profilePicture") MultipartFile profilePicture
     ) {
@@ -56,7 +56,7 @@ public class ClubController {
     }
 
     @Operation(summary = "Kulüp banner'ını günceller")
-    @PutMapping(value = "/banner", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/banner", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ClubResponse> updateBanner(
             @RequestParam("banner") MultipartFile banner
     ) {
