@@ -22,7 +22,7 @@ public class FileController {
     @Value("${upload-dir}")
     private String uploadDir;
 
-    @GetMapping("/files/{filename:.+}")
+    @GetMapping("/pictures/{filename:.+}")
     public ResponseEntity<Resource> serveFile(@PathVariable String filename) throws IOException {
         Path uploadPath = Paths.get(uploadDir).toAbsolutePath().normalize();
         Path filePath = uploadPath.resolve(filename).normalize();

@@ -11,4 +11,5 @@ public class ClubResponse {
     private String description;
     private List<String> tags;
     private String profilePicture;
+    private String banner;
 }
