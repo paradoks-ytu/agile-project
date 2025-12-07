@@ -22,7 +22,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -73,6 +72,13 @@ public class ClubServiceImpl implements ClubService {
         if (request.getTags() != null) {
             club.setTags(request.getTags());
         }
+        return clubRepository.save(club);
+    }
+
+    @Override
+    public ClubModel updateClubDescription(Long clubId, com.paradoks.agileproject.dto.request.ClubDescriptionUpdateRequest request) {
+        ClubModel club = getClub(clubId);
+        club.setDescription(request.getDescription());
         return clubRepository.save(club);
     }
 

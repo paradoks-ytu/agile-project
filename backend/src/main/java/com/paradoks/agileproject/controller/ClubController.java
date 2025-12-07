@@ -65,6 +65,17 @@ public class ClubController {
         return ResponseEntity.ok(clubMapper.clubToClubResponse(clubService.updateBanner(clubId, banner)));
     }
 
+
+    @Operation(summary = "Kulüp açıklamasını günceller")
+    @PutMapping("/description")
+    public ResponseEntity<ClubResponse> updateClubDescription(
+            @Valid @RequestBody com.paradoks.agileproject.dto.request.ClubDescriptionUpdateRequest request
+    ) {
+        SessionModel currentSession = sessionService.getCurrentSession().orElseThrow(() -> new UnauthorizedException("Not Authenticated"));
+        Long clubId = currentSession.getClub().getId();
+        return ResponseEntity.ok(clubMapper.clubToClubResponse(clubService.updateClubDescription(clubId, request)));
+    }
+
     @Operation(summary = "Kulüpleri listeler")
     @GetMapping
     public ResponseEntity<APPaged<ClubResponse>> listClubs(@Valid PageableRequestParams params) {

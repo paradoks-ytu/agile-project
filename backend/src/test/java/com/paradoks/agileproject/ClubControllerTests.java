@@ -23,8 +23,10 @@ import java.util.Collections;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch; // Added import
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import com.paradoks.agileproject.dto.request.ClubDescriptionUpdateRequest; // Added import
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -194,6 +196,37 @@ public class ClubControllerTests {
                 .andExpect(jsonPath("$.description").value("New Description Only")) // Description should be updated
                 .andExpect(jsonPath("$.tags[0]").value("initialone")) // Tags should remain unchanged
                 .andExpect(jsonPath("$.tags[1]").value("initialtwo"));
+    }
+
+    @Test
+    @Transactional
+    public void testUpdateClubDescription() throws Exception {
+        Cookie sessionCookie = registerAndLogin("Description Club", "description@example.com", "password");
+        ClubModel club = clubRepository.findByEmail("description@example.com").get();
+
+        // Set initial name and tags
+        ClubUpdateRequest initialUpdateRequest = new ClubUpdateRequest();
+        initialUpdateRequest.setName("Description Club");
+        initialUpdateRequest.setTags(Arrays.asList("validtagone", "validtagtwo"));
+        mockMvc.perform(put("/api/v1/clubs")
+                        .cookie(sessionCookie)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(initialUpdateRequest)))
+                .andExpect(status().isOk());
+
+        // Update only the description
+        ClubDescriptionUpdateRequest descriptionUpdateRequest = new ClubDescriptionUpdateRequest();
+        descriptionUpdateRequest.setDescription("This is the new *Markdown* description.");
+
+        mockMvc.perform(put("/api/v1/clubs/description")
+                        .cookie(sessionCookie)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(descriptionUpdateRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.description").value("This is the new *Markdown* description."))
+                .andExpect(jsonPath("$.name").value("Description Club")) // Name should not change
+                .andExpect(jsonPath("$.tags[0]").value("validtagone")) // Tags should not change
+                .andExpect(jsonPath("$.tags[1]").value("validtagtwo")); // Tags should not change
     }
 
     @Test

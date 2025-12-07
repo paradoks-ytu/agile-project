@@ -20,4 +20,6 @@ public interface ClubService {
     Page<ClubModel> listClubs(PageableRequestParams params);
     ClubModel updateProfilePicture(Long clubId, MultipartFile profilePicture);
     ClubModel updateBanner(Long clubId, MultipartFile banner);
+
+    ClubModel updateClubDescription(Long clubId, com.paradoks.agileproject.dto.request.ClubDescriptionUpdateRequest request);
 }
