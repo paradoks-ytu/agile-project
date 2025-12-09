@@ -1,11 +1,14 @@
 package com.paradoks.agileproject.controller;
 
 import com.paradoks.agileproject.dto.mapper.ClubMapper;
+import com.paradoks.agileproject.dto.mapper.PostMapper;
 import com.paradoks.agileproject.dto.request.ClubUpdateRequest;
 import com.paradoks.agileproject.dto.response.APPaged;
 import com.paradoks.agileproject.dto.response.ClubResponse;
+import com.paradoks.agileproject.dto.response.PostResponse;
 import com.paradoks.agileproject.exception.UnauthorizedException;
 import com.paradoks.agileproject.model.ClubModel;
+import com.paradoks.agileproject.model.Post;
 import com.paradoks.agileproject.model.SessionModel;
 import com.paradoks.agileproject.service.ClubService;
 import com.paradoks.agileproject.service.SessionService;
@@ -28,11 +31,13 @@ public class ClubController {
     private final ClubService clubService;
     private final SessionService sessionService;
     private final ClubMapper clubMapper;
+    private final PostMapper postMapper;
 
-    public ClubController(ClubService clubService, SessionService sessionService, ClubMapper clubMapper) {
+    public ClubController(ClubService clubService, SessionService sessionService, ClubMapper clubMapper, PostMapper postMapper) {
         this.clubService = clubService;
         this.sessionService = sessionService;
         this.clubMapper = clubMapper;
+        this.postMapper = postMapper;
     }
 
     @Operation(summary = "Kulüp bilgilerini günceller")
@@ -83,10 +88,19 @@ public class ClubController {
         return ResponseEntity.ok(APPaged.from(clubs.map(clubMapper::clubToClubResponse)));
     }
 
+    @Operation(summary = "Kulüplerin gönderilerini listeler")
+    @GetMapping("/{id}/posts")
+    public ResponseEntity<APPaged<PostResponse>> listClubPosts(@PathVariable Long id, @Valid PageableRequestParams params) {
+        Page<Post> clubs = clubService.listClubPosts(clubService.getClub(id).getId(), params);
+        return ResponseEntity.ok(APPaged.from(clubs.map(postMapper::postToPostResponse)));
+    }
+
     @Operation(summary = "Belirli id'ye sahip kulübü getirir")
     @GetMapping("/{id}")
     public ResponseEntity<ClubResponse> getClubWithId(@PathVariable Long id) {
         ClubResponse response = clubMapper.clubToClubResponse(clubService.getClub(id));
         return ResponseEntity.ok(response);
     }
+
+
 }

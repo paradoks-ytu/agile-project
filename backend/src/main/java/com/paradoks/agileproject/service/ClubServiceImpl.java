@@ -9,8 +9,10 @@ import com.paradoks.agileproject.exception.FileUploadException;
 import com.paradoks.agileproject.exception.NotFoundException;
 import com.paradoks.agileproject.exception.UnauthorizedException;
 import com.paradoks.agileproject.model.ClubModel;
+import com.paradoks.agileproject.model.Post;
 import com.paradoks.agileproject.model.SessionModel;
 import com.paradoks.agileproject.repository.ClubRepository;
+import com.paradoks.agileproject.repository.PostRepository;
 import com.paradoks.agileproject.utils.PasswordUtils;
 import org.imgscalr.Scalr;
 import org.jetbrains.annotations.NotNull;
@@ -44,14 +46,16 @@ public class ClubServiceImpl implements ClubService {
     private final SessionService sessionService;
 
     private final static List<String> ALLOWED_EXTENSIONS = List.of("png", "jpg");
+    private final PostRepository postRepository;
 
     @Value("${upload-dir}")
     private String uploadDir;
 
-    public ClubServiceImpl(ClubRepository clubRepository, PasswordUtils passwordUtils, SessionService sessionService) {
+    public ClubServiceImpl(ClubRepository clubRepository, PasswordUtils passwordUtils, SessionService sessionService, PostRepository postRepository) {
         this.clubRepository = clubRepository;
         this.passwordUtils = passwordUtils;
         this.sessionService = sessionService;
+        this.postRepository = postRepository;
     }
 
     @Override
@@ -80,6 +84,12 @@ public class ClubServiceImpl implements ClubService {
         ClubModel club = getClub(clubId);
         club.setDescription(request.getDescription());
         return clubRepository.save(club);
+    }
+
+    @Override
+    public Page<Post> listClubPosts(Long clubId, PageableRequestParams params) {
+        Pageable pageable = PageRequest.of(params.getPage(), params.getSize(), Sort.by(params.getSortBy()));
+        return postRepository.findAllByClub_Id(clubId, pageable);
     }
 
     @Override
