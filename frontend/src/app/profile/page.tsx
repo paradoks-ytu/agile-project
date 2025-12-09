@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import * as authService from '@/service/authService';
-import type { ClubResponse } from '@/types/authTypes';
-import Header from '@/components/Header';
+import { useNavigate, useParams } from 'react-router-dom';
+import * as authService from '../../service/authService';
+import * as postService from '../../service/postService';
+import type { ClubResponse } from '../../types/authTypes';
+import type { PostResponse } from '../../types/postTypes';
+import Header from '../../components/Header';
+import PostCard from '../../components/PostCard';
+import CreatePostForm from '../../components/CreatePostForm';
 
 // Icons
 const EditIcon = () => (
@@ -14,8 +18,14 @@ const EditIcon = () => (
 
 const ProfilePage: React.FC = () => {
     const navigate = useNavigate();
+    const { id } = useParams<{ id: string }>();
     const [user, setUser] = useState<ClubResponse | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isOwner, setIsOwner] = useState(false);
+    const [posts, setPosts] = useState<PostResponse[]>([]);
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const [loadingPosts, setLoadingPosts] = useState(false);
 
     // UI States
     const [isEditMode, setIsEditMode] = useState(false);
@@ -29,29 +39,69 @@ const ProfilePage: React.FC = () => {
     });
 
     useEffect(() => {
-        const fetchUser = async () => {
-            if (!authService.isAuthenticated()) {
-                navigate('/login');
-                return;
-            }
-
+        const fetchUserAndPosts = async () => {
+            setLoading(true);
             try {
-                const userData = await authService.getMe();
+                let userData: ClubResponse;
+                const currentUser = authService.getCachedUser();
+                let clubIdToFetch: number;
+
+                if (id) {
+                    // Viewing a specific club
+                    clubIdToFetch = parseInt(id);
+
+                    // If logged in and viewing own profile via ID, redirect to /myprofile
+                    if (currentUser && currentUser.id === clubIdToFetch) {
+                        navigate('/myprofile', { replace: true });
+                        return;
+                    }
+
+                    userData = await authService.getClubById(clubIdToFetch);
+                    setIsOwner(false);
+                } else {
+                    // Viewing own profile (/myprofile)
+                    if (!authService.isAuthenticated()) {
+                        navigate('/login');
+                        return;
+                    }
+                    userData = await authService.getMe();
+                    clubIdToFetch = userData.id;
+                    setIsOwner(true);
+                }
+
                 setUser(userData);
                 setEditForm({
                     name: userData.name,
                     description: userData.description || '',
                     tags: userData.tags ? userData.tags.join(', ') : ''
                 });
+
+                // Fetch Posts (Graceful degradation)
+                try {
+                    setLoadingPosts(true);
+                    const pagedResponse = await postService.getClubPosts(clubIdToFetch, 0, 10);
+                    // Client-side sort for the current page as a fallback
+                    const sortedContent = pagedResponse.content.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
+                    setPosts(sortedContent);
+                    setTotalPages(pagedResponse.totalPages);
+                    setPage(0);
+                } catch (postError) {
+                    console.warn('Failed to fetch posts (Backend might be missing endpoint):', postError);
+                    setPosts([]); // Set empty posts instead of crashing
+                } finally {
+                    setLoadingPosts(false);
+                }
+
             } catch (error) {
                 console.error('Failed to fetch user data', error);
-                navigate('/login');
+                // Only redirect if USER fetch fails
+                if (!id) navigate('/login');
             } finally {
                 setLoading(false);
             }
         };
-        fetchUser();
-    }, [navigate]);
+        fetchUserAndPosts();
+    }, [navigate, id]);
 
     const handleEnterEditMode = () => {
         if (user) {
@@ -88,6 +138,40 @@ const ProfilePage: React.FC = () => {
         }
     };
 
+    const handlePostCreated = (newPost: PostResponse) => {
+        setPosts([newPost, ...posts]);
+    };
+
+    const handleDeletePost = async (postId: number) => {
+        if (!confirm('Bu gönderiyi silmek istediğinize emin misiniz?')) return;
+        try {
+            await postService.deletePost(postId);
+            setPosts(posts.filter(p => p.id !== postId));
+        } catch (error) {
+            console.error('Failed to delete post', error);
+            alert('Gönderi silinemedi.');
+        }
+    };
+
+    const handlePageChange = async (newPage: number) => {
+        if (!user || newPage < 0 || newPage >= totalPages || newPage === page) return;
+
+        setLoadingPosts(true);
+        try {
+            const pagedResponse = await postService.getClubPosts(user.id, newPage, 10);
+            const sortedContent = pagedResponse.content.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
+            setPosts(sortedContent);
+            setTotalPages(pagedResponse.totalPages);
+            setPage(newPage);
+            // Scroll to top of posts section
+            window.scrollTo({ top: 400, behavior: 'smooth' });
+        } catch (error) {
+            console.error('Failed to load posts page', error);
+        } finally {
+            setLoadingPosts(false);
+        }
+    };
+
     if (loading) {
         return (
             <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-bg-main)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
@@ -115,7 +199,7 @@ const ProfilePage: React.FC = () => {
                 <div style={{ position: 'relative', marginBottom: 'var(--spacing-lg)' }}>
 
                     {/* Edit Profile Button (Right Outer Corner - Above Banner) */}
-                    {!isEditMode && (
+                    {!isEditMode && isOwner && (
                         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px' }}>
                             <button
                                 onClick={handleEnterEditMode}
@@ -143,15 +227,67 @@ const ProfilePage: React.FC = () => {
 
                     {/* Banner */}
                     <div style={{
-                        height: '225px', // Reduced height as requested (approx 16:9 ratio for a smaller viewport, or just a good landscape banner)
+                        height: '225px',
                         backgroundColor: 'var(--color-bg-panel)',
                         borderRadius: 'var(--radius-md)',
-                        backgroundImage: 'linear-gradient(to top, var(--color-bg-main) 0%, transparent 40%), linear-gradient(to right bottom, #1B2228, #2C3440)',
+                        backgroundImage: user.banner
+                            ? `linear-gradient(to top, var(--color-bg-main) 0%, transparent 40%), url(${user.banner})`
+                            : 'linear-gradient(to top, var(--color-bg-main) 0%, transparent 40%), linear-gradient(to right bottom, #1B2228, #2C3440)',
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
                         border: '1px solid var(--color-border)',
                         borderBottom: 'none',
                         position: 'relative',
-                        zIndex: 0
-                    }}></div>
+                        zIndex: 0,
+                        overflow: 'hidden'
+                    }}>
+                        {isEditMode && (
+                            <>
+                                <label
+                                    htmlFor="banner-upload"
+                                    style={{
+                                        position: 'absolute',
+                                        top: 0,
+                                        left: 0,
+                                        width: '100%',
+                                        height: '100%',
+                                        backgroundColor: 'rgba(0,0,0,0.5)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        opacity: 0,
+                                        cursor: 'pointer',
+                                        transition: 'opacity 0.2s',
+                                        color: 'white'
+                                    }}
+                                    onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+                                    onMouseLeave={(e) => e.currentTarget.style.opacity = '0'}
+                                >
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: 'rgba(0,0,0,0.6)', padding: '0.5rem 1rem', borderRadius: 'var(--radius-full)' }}>
+                                        <EditIcon />
+                                        <span>Bannerı Düzenle</span>
+                                    </div>
+                                </label>
+                                <input
+                                    id="banner-upload"
+                                    type="file"
+                                    accept="image/*"
+                                    style={{ display: 'none' }}
+                                    onChange={async (e) => {
+                                        if (e.target.files && e.target.files[0]) {
+                                            try {
+                                                const updatedUser = await authService.uploadBanner(e.target.files[0]);
+                                                setUser(updatedUser);
+                                            } catch (error) {
+                                                console.error('Failed to upload banner', error);
+                                                alert('Banner yüklenirken bir hata oluştu.');
+                                            }
+                                        }
+                                    }}
+                                />
+                            </>
+                        )}
+                    </div>
 
                     {/* Main Content (Avatar + Info) */}
                     <div style={{
@@ -165,24 +301,79 @@ const ProfilePage: React.FC = () => {
                     }}>
                         {/* Left Column: Avatar */}
                         <div style={{
-                            flexShrink: 0
+                            flexShrink: 0,
+                            position: 'relative'
                         }}>
                             <div style={{
-                                width: '140px',
-                                height: '140px',
+                                width: '160px',
+                                height: '160px',
                                 borderRadius: '50%', // Circular for Club Logo
                                 backgroundColor: 'var(--color-bg-sidebar)',
                                 border: '4px solid var(--color-bg-main)', // Match background to create "cutout" effect
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                fontSize: '4rem',
+                                fontSize: '4.6rem',
                                 fontWeight: 700,
                                 color: 'var(--color-primary)',
                                 boxShadow: 'var(--shadow-lg)',
-                                overflow: 'hidden'
+                                overflow: 'hidden',
+                                position: 'relative'
                             }}>
-                                {user.name.charAt(0).toUpperCase()}
+                                {user.profilePicture ? (
+                                    <img
+                                        src={user.profilePicture}
+                                        alt={user.name}
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                    />
+                                ) : (
+                                    user.name.charAt(0).toUpperCase()
+                                )}
+
+                                {isEditMode && (
+                                    <>
+                                        {/* Upload Overlay */}
+                                        <label
+                                            htmlFor="profile-upload"
+                                            style={{
+                                                position: 'absolute',
+                                                top: 0,
+                                                left: 0,
+                                                width: '100%',
+                                                height: '100%',
+                                                backgroundColor: 'rgba(0,0,0,0.5)',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                opacity: 0,
+                                                cursor: 'pointer',
+                                                transition: 'opacity 0.2s',
+                                                color: 'white'
+                                            }}
+                                            onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+                                            onMouseLeave={(e) => e.currentTarget.style.opacity = '0'}
+                                        >
+                                            <EditIcon />
+                                        </label>
+                                        <input
+                                            id="profile-upload"
+                                            type="file"
+                                            accept="image/*"
+                                            style={{ display: 'none' }}
+                                            onChange={async (e) => {
+                                                if (e.target.files && e.target.files[0]) {
+                                                    try {
+                                                        const updatedUser = await authService.uploadProfilePicture(e.target.files[0]);
+                                                        setUser(updatedUser);
+                                                    } catch (error) {
+                                                        console.error('Failed to upload profile picture', error);
+                                                        alert('Profil resmi yüklenirken bir hata oluştu.');
+                                                    }
+                                                }
+                                            }}
+                                        />
+                                    </>
+                                )}
                             </div>
                         </div>
 
@@ -392,18 +583,107 @@ const ProfilePage: React.FC = () => {
                 <div style={{ padding: '0 var(--spacing-lg)' }}>
                     <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: 'var(--spacing-lg)' }}>Gönderiler</h3>
 
-                    {/* Empty State for Posts */}
-                    <div style={{
-                        padding: 'var(--spacing-xl)',
-                        textAlign: 'center',
-                        backgroundColor: 'var(--color-bg-panel)',
-                        borderRadius: 'var(--radius-md)',
-                        border: '1px solid var(--color-border)',
-                        color: 'var(--color-text-muted)'
-                    }}>
-                        <div style={{ fontSize: '2rem', marginBottom: 'var(--spacing-sm)' }}>📭</div>
-                        <p>Henüz gönderi yok.</p>
-                    </div>
+                    {/* Create Post Form (Only for Owner) */}
+                    {isOwner && (
+                        <CreatePostForm onPostCreated={handlePostCreated} />
+                    )}
+
+                    {/* Posts List */}
+                    {posts.length > 0 ? (
+                        posts.map(post => (
+                            <PostCard
+                                key={post.id}
+                                post={post}
+                                isOwner={isOwner}
+                                onDelete={handleDeletePost}
+                            />
+                        ))
+                    ) : (
+                        <div style={{
+                            padding: 'var(--spacing-xl)',
+                            textAlign: 'center',
+                            backgroundColor: 'var(--color-bg-panel)',
+                            borderRadius: 'var(--radius-md)',
+                            border: '1px solid var(--color-border)',
+                            color: 'var(--color-text-muted)'
+                        }}>
+                            <div style={{ fontSize: '2rem', marginBottom: 'var(--spacing-sm)' }}>📭</div>
+                            <p>Henüz gönderi yok.</p>
+                        </div>
+                    )}
+
+                    {/* Pagination Controls */}
+                    {totalPages > 0 && (
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', marginTop: 'var(--spacing-lg)', marginBottom: 'var(--spacing-xl)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.75rem' }}>
+                                <button
+                                    onClick={() => handlePageChange(page - 1)}
+                                    disabled={page === 0 || loadingPosts}
+                                    style={{
+                                        background: 'transparent',
+                                        border: '1px solid var(--color-border)',
+                                        color: 'white',
+                                        width: '36px',
+                                        height: '36px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        borderRadius: 'var(--radius-sm)',
+                                        cursor: page === 0 || loadingPosts ? 'not-allowed' : 'pointer',
+                                        opacity: page === 0 || loadingPosts ? 0.5 : 1,
+                                        fontSize: '1.2rem'
+                                    }}
+                                >
+                                    &lt;
+                                </button>
+
+                                {Array.from({ length: totalPages }, (_, i) => (
+                                    <button
+                                        key={i}
+                                        onClick={() => handlePageChange(i)}
+                                        disabled={loadingPosts}
+                                        style={{
+                                            background: i === page ? 'var(--color-primary)' : 'transparent',
+                                            border: '1px solid var(--color-border)',
+                                            color: 'white',
+                                            width: '36px',
+                                            height: '36px',
+                                            borderRadius: 'var(--radius-sm)',
+                                            cursor: loadingPosts ? 'not-allowed' : 'pointer',
+                                            fontWeight: i === page ? 700 : 400,
+                                            fontSize: '1rem'
+                                        }}
+                                    >
+                                        {i + 1}
+                                    </button>
+                                ))}
+
+                                <button
+                                    onClick={() => handlePageChange(page + 1)}
+                                    disabled={page === totalPages - 1 || loadingPosts}
+                                    style={{
+                                        background: 'transparent',
+                                        border: '1px solid var(--color-border)',
+                                        color: 'white',
+                                        width: '36px',
+                                        height: '36px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        borderRadius: 'var(--radius-sm)',
+                                        cursor: page === totalPages - 1 || loadingPosts ? 'not-allowed' : 'pointer',
+                                        opacity: page === totalPages - 1 || loadingPosts ? 0.5 : 1,
+                                        fontSize: '1.2rem'
+                                    }}
+                                >
+                                    &gt;
+                                </button>
+                            </div>
+                            <div style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
+                                Sayfa {page + 1} / {totalPages}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
             </main>

@@ -55,6 +55,7 @@ export const getMe = async (): Promise<ClubResponse> => {
         throw new Error('Kullanıcı bilgileri alınamadı.');
     }
 
+    localStorage.setItem('user_data', JSON.stringify(data));
     return data;
 };
 
@@ -74,12 +75,54 @@ export const updateClub = async (request: ClubUpdateRequest): Promise<ClubRespon
         throw new Error('Güncelleme başarısız.');
     }
 
+    localStorage.setItem('user_data', JSON.stringify(data));
+    return data;
+};
+
+export const uploadProfilePicture = async (file: File): Promise<ClubResponse> => {
+    const formData = new FormData();
+    formData.append('profilePicture', file);
+
+    const response = await fetch(`${API_URL}/clubs/profile-picture`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error('Profil resmi yüklenemedi.');
+    }
+
+    localStorage.setItem('user_data', JSON.stringify(data));
+    return data;
+};
+
+export const uploadBanner = async (file: File): Promise<ClubResponse> => {
+    const formData = new FormData();
+    formData.append('banner', file);
+
+    const response = await fetch(`${API_URL}/clubs/banner`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error('Banner yüklenemedi.');
+    }
+
+    localStorage.setItem('user_data', JSON.stringify(data));
     return data;
 };
 
 export const logout = () => {
     // Clear client-side session flag
     localStorage.removeItem('user_session');
+    localStorage.removeItem('user_data');
 
     // Optional: Call backend logout if it exists (ignoring error for now)
     try {
@@ -96,6 +139,18 @@ export const isAuthenticated = (): boolean => {
     return localStorage.getItem('user_session') === 'active';
 };
 
+export const getCachedUser = (): ClubResponse | null => {
+    const data = localStorage.getItem('user_data');
+    if (data) {
+        try {
+            return JSON.parse(data);
+        } catch (e) {
+            return null;
+        }
+    }
+    return null;
+};
+
 export const getClubs = async (page: number = 0, size: number = 30): Promise<APPaged<ClubResponse>> => {
     const response = await fetch(`${API_URL}/clubs?page=${page}&size=${size}`, {
         method: 'GET',
@@ -106,6 +161,21 @@ export const getClubs = async (page: number = 0, size: number = 30): Promise<APP
 
     if (!response.ok) {
         throw new Error('Failed to fetch clubs');
+    }
+
+    return response.json();
+};
+
+export const getClubById = async (id: number): Promise<ClubResponse> => {
+    const response = await fetch(`${API_URL}/clubs/${id}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch club');
     }
 
     return response.json();

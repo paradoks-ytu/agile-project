@@ -19,6 +19,8 @@ export interface ClubResponse {
     name: string;
     description: string;
     tags: string[];
+    profilePicture: string | null;
+    banner: string | null;
 }
 
 export interface ClubUpdateRequest {
