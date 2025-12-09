@@ -16,6 +16,7 @@ function App() {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/myprofile" element={<ProfilePage />} />
                 <Route path="/clubs" element={<ClubsPage />} />
+                <Route path="/clubs/:id" element={<ProfilePage />} />
 
                 {/* Admin Routes */}
                 <Route path="/admin" element={<AdminLayout />}>

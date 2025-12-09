@@ -6,7 +6,7 @@ import type { ClubResponse } from '@/types/authTypes';
 const Header: React.FC = () => {
     const navigate = useNavigate();
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [user, setUser] = useState<ClubResponse | null>(null);
+    const [user, setUser] = useState<ClubResponse | null>(authService.getCachedUser());
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -100,10 +100,19 @@ const Header: React.FC = () => {
                             fontSize: '1rem',
                             fontWeight: 600,
                             textDecoration: 'none',
-                            cursor: 'pointer'
+                            cursor: 'pointer',
+                            overflow: 'hidden'
                         }}
                     >
-                        {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                        {user?.profilePicture ? (
+                            <img
+                                src={user.profilePicture}
+                                alt={user.name}
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                        ) : (
+                            user?.name ? user.name.charAt(0).toUpperCase() : 'U'
+                        )}
                     </Link>
 
                     {/* Profile Button */}
