@@ -10,9 +10,9 @@ import com.paradoks.agileproject.dto.response.ApiResponse;
 import com.paradoks.agileproject.dto.response.ClubResponse;
 import com.paradoks.agileproject.dto.response.UserResponse;
 import com.paradoks.agileproject.exception.UnauthorizedException;
-import com.paradoks.agileproject.model.SessionModel;
+import com.paradoks.agileproject.model.ClubSession;
 import com.paradoks.agileproject.service.ClubService;
-import com.paradoks.agileproject.service.SessionService;
+import com.paradoks.agileproject.service.ClubSessionService;
 import com.paradoks.agileproject.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,14 +28,14 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final ClubService clubService;
-    private final SessionService sessionService;
+    private final ClubSessionService clubSessionService;
     private final ClubMapper clubMapper;
     private final UserService userService;
     private final UserMapper userMapper;
 
-    public AuthController(ClubService clubService, SessionService sessionService, ClubMapper clubMapper, UserService userService, UserMapper userMapper) {
+    public AuthController(ClubService clubService, ClubSessionService clubSessionService, ClubMapper clubMapper, UserService userService, UserMapper userMapper) {
         this.clubService = clubService;
-        this.sessionService = sessionService;
+        this.clubSessionService = clubSessionService;
         this.clubMapper = clubMapper;
         this.userService = userService;
         this.userMapper = userMapper;
@@ -67,7 +67,7 @@ public class AuthController {
     @Operation(summary = "Mevcut kulübün bilgilerini döner")
     @GetMapping("/me")
     public ResponseEntity<ClubResponse> me() {
-        SessionModel session = sessionService.getCurrentSession()
+        ClubSession session = clubSessionService.getCurrentSession()
                 .orElseThrow(() -> new UnauthorizedException("No active session found"));
 
         return ResponseEntity.ok(clubMapper.clubToClubResponse(clubService.getClub(session.getClub().getId())));

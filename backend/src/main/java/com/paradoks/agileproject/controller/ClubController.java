@@ -9,9 +9,9 @@ import com.paradoks.agileproject.dto.response.PostResponse;
 import com.paradoks.agileproject.exception.UnauthorizedException;
 import com.paradoks.agileproject.model.ClubModel;
 import com.paradoks.agileproject.model.Post;
-import com.paradoks.agileproject.model.SessionModel;
+import com.paradoks.agileproject.model.ClubSession;
 import com.paradoks.agileproject.service.ClubService;
-import com.paradoks.agileproject.service.SessionService;
+import com.paradoks.agileproject.service.ClubSessionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -29,13 +29,13 @@ import com.paradoks.agileproject.dto.request.PageableRequestParams;
 public class ClubController {
 
     private final ClubService clubService;
-    private final SessionService sessionService;
+    private final ClubSessionService clubSessionService;
     private final ClubMapper clubMapper;
     private final PostMapper postMapper;
 
-    public ClubController(ClubService clubService, SessionService sessionService, ClubMapper clubMapper, PostMapper postMapper) {
+    public ClubController(ClubService clubService, ClubSessionService clubSessionService, ClubMapper clubMapper, PostMapper postMapper) {
         this.clubService = clubService;
-        this.sessionService = sessionService;
+        this.clubSessionService = clubSessionService;
         this.clubMapper = clubMapper;
         this.postMapper = postMapper;
     }
@@ -45,7 +45,7 @@ public class ClubController {
     public ResponseEntity<ClubResponse> updateClub(
             @Valid @RequestBody ClubUpdateRequest request
     ) {
-        SessionModel currentSession = sessionService.getCurrentSession().orElseThrow(() -> new UnauthorizedException("Not Authenticated"));
+        ClubSession currentSession = clubSessionService.getCurrentSession().orElseThrow(() -> new UnauthorizedException("Not Authenticated"));
         Long clubId = currentSession.getClub().getId();
         return ResponseEntity.ok(clubMapper.clubToClubResponse(clubService.updateClub(clubId, request)));
     }
@@ -55,7 +55,7 @@ public class ClubController {
     public ResponseEntity<ClubResponse> updateProfilePicture(
             @RequestParam("profilePicture") MultipartFile profilePicture
     ) {
-        SessionModel currentSession = sessionService.getCurrentSession().orElseThrow(() -> new UnauthorizedException("Not Authenticated"));
+        ClubSession currentSession = clubSessionService.getCurrentSession().orElseThrow(() -> new UnauthorizedException("Not Authenticated"));
         Long clubId = currentSession.getClub().getId();
         return ResponseEntity.ok(clubMapper.clubToClubResponse(clubService.updateProfilePicture(clubId, profilePicture)));
     }
@@ -65,7 +65,7 @@ public class ClubController {
     public ResponseEntity<ClubResponse> updateBanner(
             @RequestParam("banner") MultipartFile banner
     ) {
-        SessionModel currentSession = sessionService.getCurrentSession().orElseThrow(() -> new UnauthorizedException("Not Authenticated"));
+        ClubSession currentSession = clubSessionService.getCurrentSession().orElseThrow(() -> new UnauthorizedException("Not Authenticated"));
         Long clubId = currentSession.getClub().getId();
         return ResponseEntity.ok(clubMapper.clubToClubResponse(clubService.updateBanner(clubId, banner)));
     }
@@ -76,7 +76,7 @@ public class ClubController {
     public ResponseEntity<ClubResponse> updateClubDescription(
             @Valid @RequestBody com.paradoks.agileproject.dto.request.ClubDescriptionUpdateRequest request
     ) {
-        SessionModel currentSession = sessionService.getCurrentSession().orElseThrow(() -> new UnauthorizedException("Not Authenticated"));
+        ClubSession currentSession = clubSessionService.getCurrentSession().orElseThrow(() -> new UnauthorizedException("Not Authenticated"));
         Long clubId = currentSession.getClub().getId();
         return ResponseEntity.ok(clubMapper.clubToClubResponse(clubService.updateClubDescription(clubId, request)));
     }

@@ -1,6 +1,6 @@
 package com.paradoks.agileproject.middleware;
 
-import com.paradoks.agileproject.service.SessionService;
+import com.paradoks.agileproject.service.ClubSessionService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -18,10 +18,10 @@ import java.util.ArrayList;
 @Component
 public class AuthMiddleware extends OncePerRequestFilter {
 
-    private final SessionService sessionService;
+    private final ClubSessionService clubSessionService;
 
-    public AuthMiddleware(SessionService sessionService) {
-        this.sessionService = sessionService;
+    public AuthMiddleware(ClubSessionService clubSessionService) {
+        this.clubSessionService = clubSessionService;
     }
 
     @Override
@@ -39,7 +39,7 @@ public class AuthMiddleware extends OncePerRequestFilter {
 
         if (sessionCookie != null) {
             String token = sessionCookie.getValue();
-            if (sessionService.isSessionValid(token)) {
+            if (clubSessionService.isSessionValid(token)) {
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(token, null, new ArrayList<>());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
