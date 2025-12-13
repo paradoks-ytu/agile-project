@@ -5,7 +5,6 @@ import com.paradoks.agileproject.dto.request.LoginRequest;
 import com.paradoks.agileproject.dto.request.RegisterRequest;
 import com.paradoks.agileproject.dto.response.ApiResponse;
 import com.paradoks.agileproject.dto.response.ClubResponse;
-import com.paradoks.agileproject.exception.NotFoundException;
 import com.paradoks.agileproject.exception.UnauthorizedException;
 import com.paradoks.agileproject.model.SessionModel;
 import com.paradoks.agileproject.service.ClubService;
@@ -15,7 +14,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -38,7 +36,7 @@ public class AuthController {
         this.clubMapper = clubMapper;
     }
 
-    @Operation(summary = "Yeni kullanıcı kaydı oluşturur")
+    @Operation(summary = "Yeni kulüp kaydı oluşturur")
     @PostMapping("/register")
     public ResponseEntity<ApiResponse> register(
             @Valid @RequestBody RegisterRequest request
@@ -47,7 +45,7 @@ public class AuthController {
         return ResponseEntity.status(response.isSuccess() ? 200 : 400).body(response);
     }
 
-    @Operation(summary = "Kullanıcı girişi yapar ve token cookie olarak döner")
+    @Operation(summary = "Kulübün girişini yapar ve token cookie olarak döner")
     @PostMapping("/login")
     public ResponseEntity<ApiResponse> login(
             @Valid @RequestBody LoginRequest request,
@@ -55,12 +53,8 @@ public class AuthController {
     ) {
         String token = clubService.login(request);
 
-        // Kullanıcı bilgilerini al
-        SessionModel session = sessionService.getActiveSessionByEmail(request.getEmail())
-                .orElseThrow(() -> new NotFoundException("Session could not be created"));
-
         // Cookie oluştur
-        Cookie cookie = new Cookie("SESSION_TOKEN", session.getToken());
+        Cookie cookie = new Cookie("SESSION_TOKEN", token);
         cookie.setHttpOnly(true);
         cookie.setPath("/"); // tüm API yollarında geçerli
         cookie.setMaxAge(24 * 60 * 60); // 24 saat
@@ -69,7 +63,7 @@ public class AuthController {
         return ResponseEntity.ok(new ApiResponse(true, "Giriş başarılı"));
     }
 
-    @Operation(summary = "Mevcut kullanıcının bilgilerini döner")
+    @Operation(summary = "Mevcut kulübün bilgilerini döner")
     @GetMapping("/me")
     public ResponseEntity<ClubResponse> me() {
         SessionModel session = sessionService.getCurrentSession()
