@@ -1,25 +1,26 @@
 package com.paradoks.agileproject.controller;
 
 import com.paradoks.agileproject.dto.mapper.ClubMapper;
+import com.paradoks.agileproject.dto.mapper.UserMapper;
 import com.paradoks.agileproject.dto.request.LoginRequest;
 import com.paradoks.agileproject.dto.request.RegisterRequest;
+import com.paradoks.agileproject.dto.request.UserLoginRequest;
+import com.paradoks.agileproject.dto.request.UserRegisterRequest;
 import com.paradoks.agileproject.dto.response.ApiResponse;
 import com.paradoks.agileproject.dto.response.ClubResponse;
+import com.paradoks.agileproject.dto.response.UserResponse;
 import com.paradoks.agileproject.exception.UnauthorizedException;
 import com.paradoks.agileproject.model.SessionModel;
 import com.paradoks.agileproject.service.ClubService;
 import com.paradoks.agileproject.service.SessionService;
+import com.paradoks.agileproject.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Authentication", description = "Kayıt ve giriş işlemleri")
 @RestController
@@ -29,11 +30,15 @@ public class AuthController {
     private final ClubService clubService;
     private final SessionService sessionService;
     private final ClubMapper clubMapper;
+    private final UserService userService;
+    private final UserMapper userMapper;
 
-    public AuthController(ClubService clubService, SessionService sessionService, ClubMapper clubMapper) {
+    public AuthController(ClubService clubService, SessionService sessionService, ClubMapper clubMapper, UserService userService, UserMapper userMapper) {
         this.clubService = clubService;
         this.sessionService = sessionService;
         this.clubMapper = clubMapper;
+        this.userService = userService;
+        this.userMapper = userMapper;
     }
 
     @Operation(summary = "Yeni kulüp kaydı oluşturur")
@@ -54,11 +59,7 @@ public class AuthController {
         String token = clubService.login(request);
 
         // Cookie oluştur
-        Cookie cookie = new Cookie("SESSION_TOKEN", token);
-        cookie.setHttpOnly(true);
-        cookie.setPath("/"); // tüm API yollarında geçerli
-        cookie.setMaxAge(24 * 60 * 60); // 24 saat
-        response.addCookie(cookie);
+        response.addCookie(createSessionCookie("CLUB_SESSION", token));
 
         return ResponseEntity.ok(new ApiResponse(true, "Giriş başarılı"));
     }
@@ -71,4 +72,45 @@ public class AuthController {
 
         return ResponseEntity.ok(clubMapper.clubToClubResponse(clubService.getClub(session.getClub().getId())));
     }
+
+    @Operation(summary = "Yeni kullanıcı kaydı oluşturur")
+    @PostMapping("/user/register")
+    public ResponseEntity<ApiResponse> registerUser(
+            @Valid @RequestBody UserRegisterRequest request
+    ) {
+        ApiResponse response = userService.register(request);
+        return ResponseEntity.status(response.isSuccess() ? 200 : 400).body(response);
+    }
+
+    @Operation(summary = "Kullanıcının girişini yapar ve token cookie olarak döner")
+    @PostMapping("/user/login")
+    public ResponseEntity<ApiResponse> loginUser(
+            @Valid @RequestBody UserLoginRequest request,
+            HttpServletResponse response
+    ) {
+        String token = userService.login(request);
+
+        response.addCookie(createSessionCookie("USER_SESSION", token));
+
+        return ResponseEntity.ok(new ApiResponse(true, "Giriş başarılı"));
+    }
+
+    @Operation(summary = "Mevcut kullanıcının bilgilerini döner")
+    @GetMapping("/user/me")
+    public ResponseEntity<UserResponse> meUser() {
+    }
+
+    @Operation(summary = "Mevcut kullanıcının hesabını siler")
+    @PostMapping("/user/delete")
+    public ResponseEntity<ApiResponse> deleteUser() {
+    }
+
+    private Cookie createSessionCookie(String name, String token) {
+        Cookie cookie = new Cookie(name, token);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/"); // tüm API yollarında geçerli
+        cookie.setMaxAge(24 * 60 * 60); // 24 saat
+        return cookie;
+    }
+
 }

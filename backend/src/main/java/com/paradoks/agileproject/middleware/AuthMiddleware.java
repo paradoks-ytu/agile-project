@@ -14,7 +14,6 @@ import org.springframework.web.util.WebUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Optional;
 
 @Component
 public class AuthMiddleware extends OncePerRequestFilter {
@@ -28,7 +27,15 @@ public class AuthMiddleware extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        Cookie sessionCookie = WebUtils.getCookie(request, "SESSION_TOKEN");
+
+        checkToken(request,"USER_SESSION");
+        checkToken(request,"CLUB_SESSION");
+
+        filterChain.doFilter(request, response);
+    }
+
+    private void checkToken(HttpServletRequest request, String name) {
+        Cookie sessionCookie = WebUtils.getCookie(request, name);
 
         if (sessionCookie != null) {
             String token = sessionCookie.getValue();
@@ -38,6 +45,6 @@ public class AuthMiddleware extends OncePerRequestFilter {
             }
         }
 
-        filterChain.doFilter(request, response);
     }
+
 }
