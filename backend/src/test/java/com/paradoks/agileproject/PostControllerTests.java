@@ -62,7 +62,7 @@ public class PostControllerTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isOk())
-                .andReturn().getResponse().getCookie("SESSION_TOKEN");
+                .andReturn().getResponse().getCookie("CLUB_SESSION");
     }
 
     @Test

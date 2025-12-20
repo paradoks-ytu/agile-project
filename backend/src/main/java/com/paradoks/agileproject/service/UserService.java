@@ -12,4 +12,5 @@ public interface UserService {
     String login(UserLoginRequest loginRequest);
     User getUser(Long userId);
     ApiResponse deleteUser(Long userId);
+    ApiResponse verifyUser(String email, String code);
 }

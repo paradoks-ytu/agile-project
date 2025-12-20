@@ -82,6 +82,16 @@ public class AuthController {
         return ResponseEntity.status(response.isSuccess() ? 200 : 400).body(response);
     }
 
+    @Operation(summary = "Kullanıcı doğrulama işlemi")
+    @PostMapping("/user/verify")
+    public ResponseEntity<ApiResponse> verifyUser(
+            @RequestParam String email,
+            @RequestParam String code
+    ) {
+        ApiResponse response = userService.verifyUser(email, code);
+        return ResponseEntity.status(response.isSuccess() ? 200 : 400).body(response);
+    }
+
     @Operation(summary = "Kullanıcının girişini yapar ve token cookie olarak döner")
     @PostMapping("/user/login")
     public ResponseEntity<ApiResponse> loginUser(
@@ -98,11 +108,15 @@ public class AuthController {
     @Operation(summary = "Mevcut kullanıcının bilgilerini döner")
     @GetMapping("/user/me")
     public ResponseEntity<UserResponse> meUser() {
+        // TODO: Implement proper user session handling and return actual user data
+        throw new UnauthorizedException("User session management not fully implemented yet for /user/me");
     }
 
     @Operation(summary = "Mevcut kullanıcının hesabını siler")
     @PostMapping("/user/delete")
     public ResponseEntity<ApiResponse> deleteUser() {
+        // TODO: Implement user deletion logic
+        return ResponseEntity.ok(new ApiResponse(false, "User deletion not yet implemented"));
     }
 
     private Cookie createSessionCookie(String name, String token) {

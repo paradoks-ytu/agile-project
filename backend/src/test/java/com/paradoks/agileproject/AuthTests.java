@@ -57,7 +57,7 @@ public class AuthTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isOk())
-                .andExpect(cookie().exists("SESSION_TOKEN"))
+                .andExpect(cookie().exists("CLUB_SESSION"))
                 .andExpect(jsonPath("$.success").value(true));
     }
 
@@ -85,9 +85,9 @@ public class AuthTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isOk())
-                .andExpect(cookie().exists("SESSION_TOKEN"))
+                .andExpect(cookie().exists("CLUB_SESSION"))
                 .andExpect(jsonPath("$.success").value(true))
-                .andReturn().getResponse().getCookie("SESSION_TOKEN");
+                .andReturn().getResponse().getCookie("CLUB_SESSION");
 
         // Access /me endpoint with the session token
         mockMvc.perform(get("/api/v1/auth/me")
