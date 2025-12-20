@@ -6,6 +6,8 @@ import com.paradoks.agileproject.dto.response.ApiResponse;
 import com.paradoks.agileproject.model.User;
 import org.springframework.stereotype.Service;
 
+import com.paradoks.agileproject.dto.request.UserUpdateRequest; // Added import
+
 @Service
 public interface UserService {
     ApiResponse register(UserRegisterRequest registerRequest);
@@ -13,4 +15,5 @@ public interface UserService {
     User getUser(Long userId);
     ApiResponse deleteUser(Long userId);
     ApiResponse verifyUser(String email, String code);
+    User updateUser(Long userId, UserUpdateRequest updateRequest);
 }

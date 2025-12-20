@@ -2,6 +2,7 @@ package com.paradoks.agileproject.service;
 
 import com.paradoks.agileproject.dto.request.UserLoginRequest;
 import com.paradoks.agileproject.dto.request.UserRegisterRequest;
+import com.paradoks.agileproject.dto.request.UserUpdateRequest;
 import com.paradoks.agileproject.dto.response.ApiResponse;
 import com.paradoks.agileproject.exception.BadRequestException;
 import com.paradoks.agileproject.exception.NotFoundException;
@@ -133,5 +134,22 @@ public class UserServiceImpl implements UserService {
         }
         userRepository.deleteById(userId);
         return new ApiResponse(true, "User deleted successfully");
+    }
+
+    @Override
+    public User updateUser(Long userId, UserUpdateRequest updateRequest) {
+        User user = getUser(userId);
+
+        if (updateRequest.getFirstName() != null) {
+            user.setFirstName(updateRequest.getFirstName());
+        }
+        if (updateRequest.getSecondName() != null) {
+            user.setLastName(updateRequest.getSecondName());
+        }
+        if (updateRequest.getTags() != null) {
+            user.setTags(updateRequest.getTags());
+        }
+
+        return userRepository.save(user);
     }
 }

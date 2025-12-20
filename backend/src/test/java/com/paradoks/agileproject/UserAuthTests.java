@@ -96,6 +96,80 @@ public class UserAuthTests {
                 .andExpect(jsonPath("$.lastName").value("Doe"));
     }
 
+import com.paradoks.agileproject.dto.request.UserUpdateRequest; // Added import
+import java.util.Arrays; // Added import
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put; // Added import
+
+// ... inside the class ...
+
+    @Test
+    @Transactional
+    public void testUpdateUser() throws Exception {
+        String email = "updateuser@example.com";
+        String password = "StrongPassword123!";
+
+        // 1. Register User
+        UserRegisterRequest registerRequest = new UserRegisterRequest();
+        registerRequest.setFirstName("OriginalFirst");
+        registerRequest.setSecondName("OriginalLast");
+        registerRequest.setEmail(email);
+        registerRequest.setPassword(password);
+
+        mockMvc.perform(post("/api/v1/auth/user/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(registerRequest)))
+                .andExpect(status().isOk());
+
+        // 2. Get Verification Code
+        VerificationCode verificationCode = verificationCodeRepository.findAll().stream()
+                .filter(vc -> vc.getEmail().equals(email))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(verificationCode);
+
+        // 3. Verify User
+        mockMvc.perform(post("/api/v1/auth/user/verify")
+                        .param("email", email)
+                        .param("code", verificationCode.getCode()))
+                .andExpect(status().isOk());
+
+        // 4. Login
+        UserLoginRequest loginRequest = new UserLoginRequest();
+        loginRequest.setEmail(email);
+        loginRequest.setPassword(password);
+
+        Cookie sessionCookie = mockMvc.perform(post("/api/v1/auth/user/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginRequest)))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getCookie("USER_SESSION");
+
+        // 5. Update User
+        UserUpdateRequest updateRequest = new UserUpdateRequest();
+        updateRequest.setFirstName("UpdatedFirst");
+        updateRequest.setSecondName("UpdatedLast");
+        updateRequest.setTags(Arrays.asList("developer", "java"));
+
+        mockMvc.perform(put("/api/v1/auth/user")
+                        .cookie(sessionCookie)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.firstName").value("UpdatedFirst"))
+                .andExpect(jsonPath("$.lastName").value("UpdatedLast"))
+                .andExpect(jsonPath("$.tags[0]").value("developer"))
+                .andExpect(jsonPath("$.tags[1]").value("java"));
+        
+        // Verify update in DB
+        mockMvc.perform(get("/api/v1/auth/user/me")
+                .cookie(sessionCookie))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.firstName").value("UpdatedFirst"))
+                .andExpect(jsonPath("$.lastName").value("UpdatedLast"))
+                .andExpect(jsonPath("$.tags[0]").value("developer"))
+                .andExpect(jsonPath("$.tags[1]").value("java"));
+    }
+
     @Test
     @Transactional
     public void testUserVerifyWithInvalidCode() throws Exception {

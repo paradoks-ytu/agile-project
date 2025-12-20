@@ -6,6 +6,7 @@ import com.paradoks.agileproject.dto.request.LoginRequest;
 import com.paradoks.agileproject.dto.request.RegisterRequest;
 import com.paradoks.agileproject.dto.request.UserLoginRequest;
 import com.paradoks.agileproject.dto.request.UserRegisterRequest;
+import com.paradoks.agileproject.dto.request.UserUpdateRequest;
 import com.paradoks.agileproject.dto.response.ApiResponse;
 import com.paradoks.agileproject.dto.response.ClubResponse;
 import com.paradoks.agileproject.dto.response.UserResponse;
@@ -116,6 +117,17 @@ public class AuthController {
                 .orElseThrow(() -> new UnauthorizedException("No active session found"));
 
         return ResponseEntity.ok(userMapper.userToUserResponse(userService.getUser(session.getUser().getId())));
+    }
+
+    @Operation(summary = "Mevcut kullanıcının bilgilerini günceller")
+    @PutMapping("/user")
+    public ResponseEntity<UserResponse> updateUser(
+            @Valid @RequestBody UserUpdateRequest request
+    ) {
+        UserSession session = userSessionService.getCurrentSession()
+                .orElseThrow(() -> new UnauthorizedException("No active session found"));
+
+        return ResponseEntity.ok(userMapper.userToUserResponse(userService.updateUser(session.getUser().getId(), request)));
     }
 
     @Operation(summary = "Mevcut kullanıcının hesabını siler")
