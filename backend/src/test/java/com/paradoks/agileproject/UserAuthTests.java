@@ -16,6 +16,7 @@ import org.springframework.test.context.TestConstructor;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -78,12 +79,21 @@ public class UserAuthTests {
         loginRequest.setEmail(email);
         loginRequest.setPassword(password);
 
-        mockMvc.perform(post("/api/v1/auth/user/login")
+        Cookie sessionCookie = mockMvc.perform(post("/api/v1/auth/user/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(cookie().exists("USER_SESSION"));
+                .andExpect(cookie().exists("USER_SESSION"))
+                .andReturn().getResponse().getCookie("USER_SESSION");
+
+        // 5. Test /user/me (Verifies UserSessionService)
+        mockMvc.perform(get("/api/v1/auth/user/me")
+                        .cookie(sessionCookie))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value(email))
+                .andExpect(jsonPath("$.firstName").value("John"))
+                .andExpect(jsonPath("$.lastName").value("Doe"));
     }
 
     @Test

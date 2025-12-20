@@ -10,7 +10,6 @@ import com.paradoks.agileproject.model.User;
 import com.paradoks.agileproject.model.UserSession;
 import com.paradoks.agileproject.model.VerificationCode;
 import com.paradoks.agileproject.repository.UserRepository;
-import com.paradoks.agileproject.repository.UserSessionRepository;
 import com.paradoks.agileproject.repository.VerificationCodeRepository;
 import com.paradoks.agileproject.utils.PasswordUtils;
 import org.slf4j.Logger;
@@ -30,13 +29,13 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final VerificationCodeRepository verificationCodeRepository;
-    private final UserSessionRepository userSessionRepository;
+    private final UserSessionService userSessionService;
     private final PasswordUtils passwordUtils;
 
-    public UserServiceImpl(UserRepository userRepository, VerificationCodeRepository verificationCodeRepository, UserSessionRepository userSessionRepository, PasswordUtils passwordUtils) {
+    public UserServiceImpl(UserRepository userRepository, VerificationCodeRepository verificationCodeRepository, UserSessionService userSessionService, PasswordUtils passwordUtils) {
         this.userRepository = userRepository;
         this.verificationCodeRepository = verificationCodeRepository;
-        this.userSessionRepository = userSessionRepository;
+        this.userSessionService = userSessionService;
         this.passwordUtils = passwordUtils;
     }
 
@@ -116,8 +115,7 @@ public class UserServiceImpl implements UserService {
             throw new UnauthorizedException("Invalid email or password");
         }
 
-        UserSession session = UserSession.createSession(user, 24);
-        userSessionRepository.save(session);
+        UserSession session = userSessionService.createSession(user, 24);
 
         return session.getToken();
     }

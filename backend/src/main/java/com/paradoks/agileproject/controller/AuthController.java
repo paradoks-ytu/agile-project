@@ -11,9 +11,11 @@ import com.paradoks.agileproject.dto.response.ClubResponse;
 import com.paradoks.agileproject.dto.response.UserResponse;
 import com.paradoks.agileproject.exception.UnauthorizedException;
 import com.paradoks.agileproject.model.ClubSession;
+import com.paradoks.agileproject.model.UserSession;
 import com.paradoks.agileproject.service.ClubService;
 import com.paradoks.agileproject.service.ClubSessionService;
 import com.paradoks.agileproject.service.UserService;
+import com.paradoks.agileproject.service.UserSessionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
@@ -32,13 +34,15 @@ public class AuthController {
     private final ClubMapper clubMapper;
     private final UserService userService;
     private final UserMapper userMapper;
+    private final UserSessionService userSessionService;
 
-    public AuthController(ClubService clubService, ClubSessionService clubSessionService, ClubMapper clubMapper, UserService userService, UserMapper userMapper) {
+    public AuthController(ClubService clubService, ClubSessionService clubSessionService, ClubMapper clubMapper, UserService userService, UserMapper userMapper, UserSessionService userSessionService) {
         this.clubService = clubService;
         this.clubSessionService = clubSessionService;
         this.clubMapper = clubMapper;
         this.userService = userService;
         this.userMapper = userMapper;
+        this.userSessionService = userSessionService;
     }
 
     @Operation(summary = "Yeni kulüp kaydı oluşturur")
@@ -108,8 +112,10 @@ public class AuthController {
     @Operation(summary = "Mevcut kullanıcının bilgilerini döner")
     @GetMapping("/user/me")
     public ResponseEntity<UserResponse> meUser() {
-        // TODO: Implement proper user session handling and return actual user data
-        throw new UnauthorizedException("User session management not fully implemented yet for /user/me");
+        UserSession session = userSessionService.getCurrentSession()
+                .orElseThrow(() -> new UnauthorizedException("No active session found"));
+
+        return ResponseEntity.ok(userMapper.userToUserResponse(userService.getUser(session.getUser().getId())));
     }
 
     @Operation(summary = "Mevcut kullanıcının hesabını siler")
