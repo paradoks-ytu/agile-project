@@ -8,16 +8,15 @@ import java.util.UUID;
 
 @Data
 @Entity
-@Table(name = "sessions")
-public class SessionModel {
-
+@Table(name = "user_sessions")
+public class UserSession {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "club_id", nullable = false)
-    private ClubModel club;
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @Column(nullable = false, unique = true, length = 36)
     private String token;
@@ -31,9 +30,9 @@ public class SessionModel {
     @Column(nullable = false)
     private boolean active;
 
-    public static SessionModel createSession(ClubModel club, int hoursValid) {
-        SessionModel session = new SessionModel();
-        session.setClub(club);
+    public static UserSession createSession(User user, int hoursValid) {
+        UserSession session = new UserSession();
+        session.setUser(user);
         session.setToken(UUID.randomUUID().toString());
         session.setCreatedAt(LocalDateTime.now());
         session.setExpiresAt(LocalDateTime.now().plusHours(hoursValid));

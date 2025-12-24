@@ -10,7 +10,7 @@ import com.paradoks.agileproject.exception.NotFoundException;
 import com.paradoks.agileproject.exception.UnauthorizedException;
 import com.paradoks.agileproject.model.ClubModel;
 import com.paradoks.agileproject.model.Post;
-import com.paradoks.agileproject.model.SessionModel;
+import com.paradoks.agileproject.model.ClubSession;
 import com.paradoks.agileproject.repository.ClubRepository;
 import com.paradoks.agileproject.repository.PostRepository;
 import com.paradoks.agileproject.utils.PasswordUtils;
@@ -43,7 +43,7 @@ import java.util.UUID;
 public class ClubServiceImpl implements ClubService {
     private final ClubRepository clubRepository;
     private final PasswordUtils passwordUtils;
-    private final SessionService sessionService;
+    private final ClubSessionService clubSessionService;
 
     private final static List<String> ALLOWED_EXTENSIONS = List.of("png", "jpg");
     private final PostRepository postRepository;
@@ -51,10 +51,10 @@ public class ClubServiceImpl implements ClubService {
     @Value("${upload-dir}")
     private String uploadDir;
 
-    public ClubServiceImpl(ClubRepository clubRepository, PasswordUtils passwordUtils, SessionService sessionService, PostRepository postRepository) {
+    public ClubServiceImpl(ClubRepository clubRepository, PasswordUtils passwordUtils, ClubSessionService clubSessionService, PostRepository postRepository) {
         this.clubRepository = clubRepository;
         this.passwordUtils = passwordUtils;
-        this.sessionService = sessionService;
+        this.clubSessionService = clubSessionService;
         this.postRepository = postRepository;
     }
 
@@ -131,7 +131,7 @@ public class ClubServiceImpl implements ClubService {
             throw new UnauthorizedException("Invalid credentials");
         }
 
-        SessionModel session = sessionService.createSession(club, 24); // 24 saat geçerli
+        ClubSession session = clubSessionService.createSession(club, 24); // 24 saat geçerli
 
         return session.getToken();
     }

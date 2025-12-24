@@ -5,9 +5,9 @@ import com.paradoks.agileproject.dto.request.CreatePostRequest;
 import com.paradoks.agileproject.dto.response.PostResponse;
 import com.paradoks.agileproject.exception.UnauthorizedException;
 import com.paradoks.agileproject.model.Post;
-import com.paradoks.agileproject.model.SessionModel;
+import com.paradoks.agileproject.model.ClubSession;
 import com.paradoks.agileproject.service.PostService;
-import com.paradoks.agileproject.service.SessionService;
+import com.paradoks.agileproject.service.ClubSessionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -21,19 +21,19 @@ import org.springframework.web.bind.annotation.*;
 public class PostController {
 
     private final PostService postService;
-    private final SessionService sessionService;
+    private final ClubSessionService clubSessionService;
     private final PostMapper postMapper;
 
-    public PostController(PostService postService, SessionService sessionService, PostMapper postMapper) {
+    public PostController(PostService postService, ClubSessionService clubSessionService, PostMapper postMapper) {
         this.postService = postService;
-        this.sessionService = sessionService;
+        this.clubSessionService = clubSessionService;
         this.postMapper = postMapper;
     }
 
     @Operation(summary = "Yeni bir post oluşturur")
     @PostMapping
     public ResponseEntity<PostResponse> createPost(@Valid @RequestBody CreatePostRequest createPostRequest) {
-        SessionModel currentSession = sessionService.getCurrentSession()
+        ClubSession currentSession = clubSessionService.getCurrentSession()
                 .orElseThrow(() -> new UnauthorizedException("Not Authenticated"));
 
         Long clubId = currentSession.getClub().getId();
@@ -52,7 +52,7 @@ public class PostController {
     @Operation(summary = "Postu siler")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePost(@PathVariable Long id) {
-        SessionModel currentSession = sessionService.getCurrentSession()
+        ClubSession currentSession = clubSessionService.getCurrentSession()
                 .orElseThrow(() -> new UnauthorizedException("Not Authenticated"));
         Long clubId = currentSession.getClub().getId();
         postService.deletePost(id, clubId);
@@ -62,7 +62,7 @@ public class PostController {
     @Operation(summary = "Postu günceller")
     @PutMapping("/{id}")
     public ResponseEntity<PostResponse> updatePost(@PathVariable Long id, @Valid @RequestBody CreatePostRequest createPostRequest) {
-        SessionModel currentSession = sessionService.getCurrentSession()
+        ClubSession currentSession = clubSessionService.getCurrentSession()
                 .orElseThrow(() -> new UnauthorizedException("Not Authenticated"));
         Long clubId = currentSession.getClub().getId();
 
