@@ -2,16 +2,22 @@ package com.paradoks.agileproject.controller;
 
 import com.paradoks.agileproject.dto.mapper.ClubMapper;
 import com.paradoks.agileproject.dto.mapper.PostMapper;
+import com.paradoks.agileproject.dto.mapper.UserMapper;
 import com.paradoks.agileproject.dto.request.ClubUpdateRequest;
 import com.paradoks.agileproject.dto.response.APPaged;
+import com.paradoks.agileproject.dto.response.ApiResponse;
 import com.paradoks.agileproject.dto.response.ClubResponse;
 import com.paradoks.agileproject.dto.response.PostResponse;
+import com.paradoks.agileproject.dto.response.UserResponse;
 import com.paradoks.agileproject.exception.UnauthorizedException;
 import com.paradoks.agileproject.model.ClubModel;
 import com.paradoks.agileproject.model.Post;
 import com.paradoks.agileproject.model.ClubSession;
+import com.paradoks.agileproject.model.User;
+import com.paradoks.agileproject.model.UserSession;
 import com.paradoks.agileproject.service.ClubService;
 import com.paradoks.agileproject.service.ClubSessionService;
+import com.paradoks.agileproject.service.UserSessionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -32,12 +38,16 @@ public class ClubController {
     private final ClubSessionService clubSessionService;
     private final ClubMapper clubMapper;
     private final PostMapper postMapper;
+    private final UserSessionService userSessionService;
+    private final UserMapper userMapper;
 
-    public ClubController(ClubService clubService, ClubSessionService clubSessionService, ClubMapper clubMapper, PostMapper postMapper) {
+    public ClubController(ClubService clubService, ClubSessionService clubSessionService, ClubMapper clubMapper, PostMapper postMapper, UserSessionService userSessionService, UserMapper userMapper) {
         this.clubService = clubService;
         this.clubSessionService = clubSessionService;
         this.clubMapper = clubMapper;
         this.postMapper = postMapper;
+        this.userSessionService = userSessionService;
+        this.userMapper = userMapper;
     }
 
     @Operation(summary = "Kulüp bilgilerini günceller")
@@ -102,5 +112,22 @@ public class ClubController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Kulübe üye ol veya üyelikten çık")
+    @PostMapping("/{id}/membership")
+    public ResponseEntity<ApiResponse> toggleMembership(@PathVariable Long id) {
+        UserSession userSession = userSessionService.getCurrentSession()
+                .orElseThrow(() -> new UnauthorizedException("Not Authenticated"));
+
+        boolean joined = clubService.toggleMembership(id, userSession.getUser().getId());
+        String message = joined ? "Successfully joined the club" : "Successfully left the club";
+        return ResponseEntity.ok(new ApiResponse(true, message));
+    }
+
+    @Operation(summary = "Kulüp üyelerini listeler")
+    @GetMapping("/{id}/members")
+    public ResponseEntity<APPaged<UserResponse>> listClubMembers(@PathVariable Long id, @Valid PageableRequestParams params) {
+        Page<User> members = clubService.getClubMembers(id, params);
+        return ResponseEntity.ok(APPaged.from(members.map(userMapper::userToUserResponse)));
+    }
 
 }

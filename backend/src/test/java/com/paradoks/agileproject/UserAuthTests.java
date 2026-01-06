@@ -3,6 +3,7 @@ package com.paradoks.agileproject;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.paradoks.agileproject.dto.request.UserLoginRequest;
 import com.paradoks.agileproject.dto.request.UserRegisterRequest;
+import com.paradoks.agileproject.dto.request.UserUpdateRequest;
 import com.paradoks.agileproject.model.VerificationCode;
 import com.paradoks.agileproject.repository.VerificationCodeRepository;
 import jakarta.servlet.http.Cookie;
@@ -16,8 +17,11 @@ import org.springframework.test.context.TestConstructor;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -95,12 +99,6 @@ public class UserAuthTests {
                 .andExpect(jsonPath("$.firstName").value("John"))
                 .andExpect(jsonPath("$.lastName").value("Doe"));
     }
-
-import com.paradoks.agileproject.dto.request.UserUpdateRequest; // Added import
-import java.util.Arrays; // Added import
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put; // Added import
-
-// ... inside the class ...
 
     @Test
     @Transactional
