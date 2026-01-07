@@ -11,8 +11,10 @@ import com.paradoks.agileproject.exception.UnauthorizedException;
 import com.paradoks.agileproject.model.ClubModel;
 import com.paradoks.agileproject.model.Post;
 import com.paradoks.agileproject.model.ClubSession;
+import com.paradoks.agileproject.model.User;
 import com.paradoks.agileproject.repository.ClubRepository;
 import com.paradoks.agileproject.repository.PostRepository;
+import com.paradoks.agileproject.repository.UserRepository;
 import com.paradoks.agileproject.utils.PasswordUtils;
 import org.imgscalr.Scalr;
 import org.jetbrains.annotations.NotNull;
@@ -20,6 +22,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import com.paradoks.agileproject.dto.request.PageableRequestParams;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -38,6 +41,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.ArrayList;
 
 @Service
 public class ClubServiceImpl implements ClubService {
@@ -47,15 +51,17 @@ public class ClubServiceImpl implements ClubService {
 
     private final static List<String> ALLOWED_EXTENSIONS = List.of("png", "jpg");
     private final PostRepository postRepository;
+    private final UserRepository userRepository;
 
     @Value("${upload-dir}")
     private String uploadDir;
 
-    public ClubServiceImpl(ClubRepository clubRepository, PasswordUtils passwordUtils, ClubSessionService clubSessionService, PostRepository postRepository) {
+    public ClubServiceImpl(ClubRepository clubRepository, PasswordUtils passwordUtils, ClubSessionService clubSessionService, PostRepository postRepository, UserRepository userRepository) {
         this.clubRepository = clubRepository;
         this.passwordUtils = passwordUtils;
         this.clubSessionService = clubSessionService;
         this.postRepository = postRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -282,6 +288,41 @@ public class ClubServiceImpl implements ClubService {
         }
 
         return "/" + uploadPath + "/" + fileName;
+    }
+
+    @Override
+    public boolean toggleMembership(Long clubId, Long userId) {
+        ClubModel club = getClub(clubId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        List<User> members = club.getMembers();
+        if (members == null) {
+            members = new ArrayList<>();
+        }
+
+        Optional<User> existingMember = members.stream()
+                .filter(m -> m.getId().equals(userId))
+                .findFirst();
+
+        if (existingMember.isPresent()) {
+            members.remove(existingMember.get());
+            club.setMembers(members);
+            clubRepository.save(club);
+            return false;
+        } else {
+            members.add(user);
+            club.setMembers(members);
+            clubRepository.save(club);
+            return true;
+        }
+    }
+
+    @Override
+    public Page<User> getClubMembers(Long clubId, PageableRequestParams params) {
+        getClub(clubId); // Check if club exists
+        Pageable pageable = PageRequest.of(params.getPage(), params.getSize(), Sort.by(params.getSortBy()));
+        return userRepository.findAllByJoinedClubsId(clubId, pageable);
     }
 
 }

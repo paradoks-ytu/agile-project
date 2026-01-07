@@ -34,4 +34,12 @@ public class ClubModel {
     private String profilePicture;
 
     private String banner;
+
+    @ManyToMany
+    @JoinTable(
+            name = "club_members",
+            joinColumns = @JoinColumn(name = "club_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private List<User> members;
 }

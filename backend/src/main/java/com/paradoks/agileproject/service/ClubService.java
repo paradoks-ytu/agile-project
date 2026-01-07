@@ -4,6 +4,7 @@ import com.paradoks.agileproject.dto.request.LoginRequest;
 import com.paradoks.agileproject.dto.request.RegisterRequest;
 import com.paradoks.agileproject.dto.response.ApiResponse;
 import com.paradoks.agileproject.model.Post;
+import com.paradoks.agileproject.model.User;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -27,5 +28,9 @@ public interface ClubService {
     ClubModel updateBanner(Long clubId, MultipartFile banner);
 
     ClubModel updateClubDescription(Long clubId, com.paradoks.agileproject.dto.request.ClubDescriptionUpdateRequest request);
+
+    boolean toggleMembership(Long clubId, Long userId);
+
+    Page<User> getClubMembers(Long clubId, PageableRequestParams params);
 
 }

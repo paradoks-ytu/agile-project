@@ -36,6 +36,9 @@ public class User {
     @Column(nullable = false)
     private LocalDateTime dateCreated;
 
+    @ManyToMany(mappedBy = "members")
+    private List<ClubModel> joinedClubs;
+
     @PrePersist
     protected void onCreate() {
         dateCreated = LocalDateTime.now();
