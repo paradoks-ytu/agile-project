@@ -4,7 +4,10 @@ import ClubRegistrationPage from './app/admin/register/page';
 import DashboardPage from './app/admin/dashboard/page';
 import LandingPage from './app/landing/page';
 import LoginPage from './app/auth/login/page';
+import RegisterPage from './app/auth/register/page';
+import VerifyPage from './app/auth/verify/page';
 import ProfilePage from './app/profile/page';
+import StudentProfilePage from './app/profile/student/page';
 import ClubsPage from './app/clubs/page';
 
 function App() {
@@ -14,7 +17,14 @@ function App() {
                 {/* Public Routes */}
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route path="/verify" element={<VerifyPage />} />
+
+                {/* Protected Routes */}
                 <Route path="/myprofile" element={<ProfilePage />} />
+                <Route path="/profile" element={<StudentProfilePage />} />
+
+                {/* Club Routes */}
                 <Route path="/clubs" element={<ClubsPage />} />
                 <Route path="/clubs/:id" element={<ProfilePage />} />
 

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import * as authService from '../../service/authService';
 import * as postService from '../../service/postService';
-import type { ClubResponse } from '../../types/authTypes';
+import type { ClubResponse, UserResponse } from '../../types/authTypes';
 import type { PostResponse } from '../../types/postTypes';
 import Header from '../../components/Header';
 import PostCard from '../../components/PostCard';
@@ -16,6 +16,13 @@ const EditIcon = () => (
     </svg>
 );
 
+const UserIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+        <circle cx="12" cy="7" r="4"></circle>
+    </svg>
+);
+
 const ProfilePage: React.FC = () => {
     const navigate = useNavigate();
     const { id } = useParams<{ id: string }>();
@@ -26,6 +33,13 @@ const ProfilePage: React.FC = () => {
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const [loadingPosts, setLoadingPosts] = useState(false);
+
+    // Membership States
+    const [isMember, setIsMember] = useState(false);
+    const [members, setMembers] = useState<UserResponse[]>([]);
+    const [loadingMembers, setLoadingMembers] = useState(false);
+    const [isStudent, setIsStudent] = useState(false);
+
 
     // UI States
     const [isEditMode, setIsEditMode] = useState(false);
@@ -51,7 +65,7 @@ const ProfilePage: React.FC = () => {
                     clubIdToFetch = parseInt(id);
 
                     // If logged in and viewing own profile via ID, redirect to /myprofile
-                    if (currentUser && currentUser.id === clubIdToFetch) {
+                    if (currentUser && currentUser.id === clubIdToFetch && authService.getUserRole() === 'club') {
                         navigate('/myprofile', { replace: true });
                         return;
                     }
@@ -64,6 +78,11 @@ const ProfilePage: React.FC = () => {
                         navigate('/login');
                         return;
                     }
+                    if (authService.getUserRole() !== 'club') {
+                        navigate('/profile/student'); // Redirect students to their profile
+                        return;
+                    }
+
                     userData = await authService.getMe();
                     clubIdToFetch = userData.id;
                     setIsOwner(true);
@@ -75,6 +94,27 @@ const ProfilePage: React.FC = () => {
                     description: userData.description || '',
                     tags: userData.tags ? userData.tags.join(', ') : ''
                 });
+
+                // Check role
+                const role = authService.getUserRole();
+                setIsStudent(role === 'student');
+
+                // Fetch Members to check membership status
+                try {
+                    setLoadingMembers(true);
+                    const membersData = await authService.getClubMembers(clubIdToFetch, 0, 50); // Fetch first 50 for now to check status
+                    setMembers(membersData.content);
+
+                    if (role === 'student' && currentUser) {
+                        const isJoined = membersData.content.some(m => m.id === currentUser.id);
+                        setIsMember(isJoined);
+                    }
+                } catch (memberError) {
+                    console.warn('Failed to fetch members', memberError);
+                } finally {
+                    setLoadingMembers(false);
+                }
+
 
                 // Fetch Posts (Graceful degradation)
                 try {
@@ -138,6 +178,23 @@ const ProfilePage: React.FC = () => {
         }
     };
 
+    const handleToggleMembership = async () => {
+        if (!user) return;
+        try {
+            await authService.toggleMembership(user.id);
+            setIsMember(!isMember); // Optimistic update
+
+            // Refresh members list
+            const membersData = await authService.getClubMembers(user.id, 0, 50);
+            setMembers(membersData.content);
+
+        } catch (error) {
+            console.error('Membership toggle failed', error);
+            alert('İşlem başarısız.');
+        }
+    };
+
+
     const handlePostCreated = (newPost: PostResponse) => {
         setPosts([newPost, ...posts]);
     };
@@ -198,32 +255,44 @@ const ProfilePage: React.FC = () => {
                 {/* Profile Content Container */}
                 <div style={{ position: 'relative', marginBottom: 'var(--spacing-lg)' }}>
 
-                    {/* Edit Profile Button (Right Outer Corner - Above Banner) */}
-                    {!isEditMode && isOwner && (
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px' }}>
+                    {/* Action Buttons (Right Outer Corner - Above Banner) */}
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px', gap: '10px' }}>
+
+                        {/* Edit Profile Button (Owner Only) */}
+                        {!isEditMode && isOwner && (
                             <button
                                 onClick={handleEnterEditMode}
-                                className="btn"
+                                className="btn btn-edit"
                                 style={{
-                                    backgroundColor: 'transparent',
-                                    color: 'var(--color-text-muted)',
-                                    border: '1px solid var(--color-border)',
                                     padding: '0.4rem 1rem',
                                     borderRadius: 'var(--radius-full)',
-                                    cursor: 'pointer',
-                                    fontWeight: 600,
                                     fontSize: '0.85rem',
-                                    display: 'flex',
-                                    alignItems: 'center',
+                                    fontWeight: 600,
                                     gap: '0.5rem',
-                                    transition: 'all var(--transition-fast)'
                                 }}
                             >
                                 <EditIcon />
                                 Profili Düzenle
                             </button>
-                        </div>
-                    )}
+                        )}
+
+                        {/* Join/Leave Button (Student Only) */}
+                        {isStudent && (
+                            <button
+                                onClick={handleToggleMembership}
+                                className={`btn ${isMember ? 'btn-leave' : 'btn-join'}`}
+                                style={{
+                                    padding: '0.4rem 1.5rem',
+                                    borderRadius: 'var(--radius-full)',
+                                    fontSize: '0.85rem',
+                                    fontWeight: 600,
+                                }}
+                            >
+                                {isMember ? 'Ayrıl' : 'Katıl'}
+                            </button>
+                        )}
+
+                    </div>
 
                     {/* Banner */}
                     <div style={{
@@ -327,7 +396,7 @@ const ProfilePage: React.FC = () => {
                                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                     />
                                 ) : (
-                                    user.name.charAt(0).toUpperCase()
+                                    user.name ? user.name.charAt(0).toUpperCase() : 'C'
                                 )}
 
                                 {isEditMode && (
@@ -478,6 +547,37 @@ const ProfilePage: React.FC = () => {
                                     </div>
                                 )}
                             </div>
+
+                            {/* Members List (Collapsed / Preview) */}
+                            {members.length > 0 && (
+                                <div style={{ marginBottom: 'var(--spacing-lg)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <div style={{ display: 'flex', marginLeft: '10px' }}>
+                                        {members.slice(0, 5).map((member, index) => (
+                                            <div key={member.id}
+                                                title={`${member.firstName} ${member.lastName}`}
+                                                style={{
+                                                    width: '32px',
+                                                    height: '32px',
+                                                    borderRadius: '50%',
+                                                    backgroundColor: '#444',
+                                                    border: '2px solid var(--color-bg-main)',
+                                                    marginLeft: '-10px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    fontSize: '0.8rem',
+                                                    color: 'white',
+                                                    cursor: 'default'
+                                                }}>
+                                                {member.firstName.charAt(0)}
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
+                                        {members.length} Üye
+                                    </span>
+                                </div>
+                            )}
 
                             {/* Description (Synopsis Style) */}
                             <div style={{ marginBottom: 'var(--spacing-md)' }}> {/* Reduced margin */}

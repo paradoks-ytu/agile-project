@@ -37,3 +37,30 @@ export interface APPaged<T> {
     totalPages: number;
     last: boolean;
 }
+
+export interface UserRegisterRequest {
+    firstName: string;
+    secondName: string;
+    email: string;
+    password: string;
+}
+
+export interface UserLoginRequest {
+    email: string;
+    password: string;
+}
+
+export interface UserResponse {
+    id: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+    dateCreated: string;
+    // roles: string[]; // Might not be returned by backend explicitly
+}
+
+export interface UserUpdateRequest {
+    firstName: string;
+    secondName: string; // Backend uses secondName for lastName
+    tags?: string[];
+}

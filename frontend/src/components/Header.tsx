@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import * as authService from '@/service/authService';
-import type { ClubResponse } from '@/types/authTypes';
+import * as authService from '../service/authService';
+import type { ClubResponse, UserResponse } from '../types/authTypes';
 
 const Header: React.FC = () => {
     const navigate = useNavigate();
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [user, setUser] = useState<ClubResponse | null>(authService.getCachedUser());
+    const [user, setUser] = useState<ClubResponse | UserResponse | null>(authService.getCachedUser());
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -14,8 +14,14 @@ const Header: React.FC = () => {
             setIsLoggedIn(authenticated);
             if (authenticated) {
                 try {
-                    const userData = await authService.getMe();
-                    setUser(userData);
+                    const role = authService.getUserRole();
+                    if (role === 'student') {
+                        const userData = await authService.getMeUser();
+                        setUser(userData);
+                    } else {
+                        const userData = await authService.getMe();
+                        setUser(userData);
+                    }
                 } catch (error) {
                     console.error('Failed to fetch user data', error);
                 }
@@ -31,6 +37,45 @@ const Header: React.FC = () => {
         navigate('/'); // Refresh or stay on page
     };
 
+    // Helper to get display name and image
+    const getDisplayName = () => {
+        if (!user) return 'U';
+        if ('name' in user && user.name) return user.name; // Club
+        if ('firstName' in user && user.firstName) return user.firstName; // Student
+        return 'Kullanıcı';
+    };
+
+    const getProfileImage = () => {
+        if (!user) return null;
+        if ('profilePicture' in user) return user.profilePicture;
+        return null; // Student doesn't have profile pic yet
+    };
+
+    const getProfileLink = () => {
+        const role = authService.getUserRole();
+        return role === 'student' ? '/profile' : '/myprofile';
+    };
+
+    const getInitials = () => {
+        if (!user) return 'U';
+
+        // Club
+        if ('name' in user && user.name) {
+            return user.name.charAt(0).toUpperCase();
+        }
+
+        // Student
+        if ('firstName' in user && user.firstName) {
+            const first = user.firstName.charAt(0);
+            const second = ('lastName' in user && user.lastName) ? user.lastName.charAt(0) : '';
+            // Note: backend maps lastName to secondName or vice versa, check authTypes.
+            // In authTypes UserResponse has firstName, lastName, email...
+            return (first + second).toUpperCase();
+        }
+
+        return 'U';
+    };
+
     return (
         <header style={{
             padding: 'var(--spacing-lg) var(--spacing-xl)',
@@ -44,12 +89,12 @@ const Header: React.FC = () => {
                         width: '32px',
                         height: '32px',
                         objectFit: 'contain',
-                        borderRadius: 'var(--radius-sm)' // Added border radius to match the previous look if needed, or just for style
+                        borderRadius: 'var(--radius-sm)'
                     }} />
                     <span style={{ fontSize: '1.5rem', fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1 }}>UniNest</span>
                 </Link>
 
-                {/* Clubs Button (Added) */}
+                {/* Clubs Button */}
                 <Link
                     to="/clubs"
                     className="btn"
@@ -57,7 +102,7 @@ const Header: React.FC = () => {
                         backgroundColor: 'transparent',
                         color: 'var(--color-text-muted)',
                         border: '1px solid transparent',
-                        padding: '0.5rem 1.5rem', // Same padding as Profile button for height match
+                        padding: '0.5rem 1.5rem',
                         borderRadius: 'var(--radius-full)',
                         textDecoration: 'none',
                         fontWeight: 600,
@@ -84,9 +129,9 @@ const Header: React.FC = () => {
             {/* Actions */}
             {isLoggedIn ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
-                    {/* Profile Picture (Initial) */}
+                    {/* Profile Picture */}
                     <Link
-                        to="/myprofile"
+                        to={getProfileLink()}
                         style={{
                             width: '40px',
                             height: '40px',
@@ -104,20 +149,20 @@ const Header: React.FC = () => {
                             overflow: 'hidden'
                         }}
                     >
-                        {user?.profilePicture ? (
+                        {getProfileImage() ? (
                             <img
-                                src={user.profilePicture}
-                                alt={user.name}
+                                src={getProfileImage()!}
+                                alt={getDisplayName()}
                                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                             />
                         ) : (
-                            user?.name ? user.name.charAt(0).toUpperCase() : 'U'
+                            getInitials()
                         )}
                     </Link>
 
                     {/* Profile Button */}
                     <Link
-                        to="/myprofile"
+                        to={getProfileLink()}
                         className="btn"
                         style={{
                             backgroundColor: 'var(--color-bg-panel)',
@@ -154,23 +199,42 @@ const Header: React.FC = () => {
                     </button>
                 </div>
             ) : (
-                <Link
-                    to="/login"
-                    className="btn"
-                    style={{
-                        backgroundColor: 'var(--color-bg-panel)',
-                        color: 'white',
-                        border: '1px solid var(--color-border)',
-                        padding: '0.5rem 1.5rem',
-                        borderRadius: 'var(--radius-full)', // Pill shape
-                        textDecoration: 'none',
-                        fontWeight: 600,
-                        fontSize: '0.9rem',
-                        transition: 'all var(--transition-fast)'
-                    }}
-                >
-                    GİRİŞ YAP
-                </Link>
+                <div style={{ display: 'flex', gap: 'var(--spacing-md)' }}>
+                    <Link
+                        to="/register"
+                        className="btn"
+                        style={{
+                            backgroundColor: 'white',
+                            color: 'black',
+                            border: '1px solid white',
+                            padding: '0.5rem 1.5rem',
+                            borderRadius: 'var(--radius-full)',
+                            textDecoration: 'none',
+                            fontWeight: 700,
+                            fontSize: '0.9rem',
+                            transition: 'all var(--transition-fast)'
+                        }}
+                    >
+                        KAYIT OL
+                    </Link>
+                    <Link
+                        to="/login"
+                        className="btn"
+                        style={{
+                            backgroundColor: 'var(--color-bg-panel)',
+                            color: 'white',
+                            border: '1px solid var(--color-border)',
+                            padding: '0.5rem 1.5rem',
+                            borderRadius: 'var(--radius-full)', // Pill shape
+                            textDecoration: 'none',
+                            fontWeight: 600,
+                            fontSize: '0.9rem',
+                            transition: 'all var(--transition-fast)'
+                        }}
+                    >
+                        GİRİŞ YAP
+                    </Link>
+                </div>
             )}
         </header>
     );
