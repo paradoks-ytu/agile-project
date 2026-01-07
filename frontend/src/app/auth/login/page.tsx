@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import * as authService from '@/service/authService';
+import * as authService from '../../../service/authService';
 
 const LoginPage: React.FC = () => {
     const navigate = useNavigate();
@@ -13,9 +13,13 @@ const LoginPage: React.FC = () => {
     const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle');
     const [message, setMessage] = useState('');
 
+    const [isClubLogin, setIsClubLogin] = useState(true);
+
     useEffect(() => {
         if (authService.isAuthenticated()) {
-            navigate('/');
+            const role = authService.getUserRole();
+            if (role === 'student') navigate('/profile');
+            else navigate('/myprofile');
         }
     }, [navigate]);
 
@@ -32,13 +36,18 @@ const LoginPage: React.FC = () => {
         setMessage('');
 
         try {
-            await authService.login(formData);
-            // On success, redirect to landing page
-            navigate('/');
+            if (isClubLogin) {
+                await authService.login(formData);
+                navigate('/myprofile');
+            } else {
+                await authService.loginUser(formData);
+                navigate('/profile');
+            }
         } catch (error: any) {
             setStatus('error');
             setMessage(error.message || 'Giriş başarısız.');
         }
+        setStatus('idle');
     };
 
     return (
@@ -51,7 +60,7 @@ const LoginPage: React.FC = () => {
                 position: 'relative'
             }}
         >
-            {/* Modern Floating Back Button (Middle Left) */}
+            {/* ... Back Button ... */}
             <button
                 onClick={() => navigate('/')}
                 style={{
@@ -133,6 +142,53 @@ const LoginPage: React.FC = () => {
                         </p>
                     </div>
 
+                    {/* Role Toggle */}
+                    <div style={{
+                        display: 'flex',
+                        backgroundColor: 'var(--color-bg-main)',
+                        padding: '4px',
+                        borderRadius: 'var(--radius-md)',
+                        marginBottom: 'var(--spacing-lg)',
+                        border: '1px solid var(--color-border)'
+                    }}>
+                        <button
+                            type="button"
+                            onClick={() => setIsClubLogin(true)}
+                            style={{
+                                flex: 1,
+                                padding: '8px',
+                                borderRadius: 'var(--radius-sm)',
+                                border: 'none',
+                                background: isClubLogin ? 'var(--color-bg-panel)' : 'transparent',
+                                color: isClubLogin ? 'white' : 'var(--color-text-muted)',
+                                cursor: 'pointer',
+                                fontWeight: isClubLogin ? 600 : 400,
+                                transition: 'all 0.2s',
+                                boxShadow: isClubLogin ? '0 1px 3px rgba(0,0,0,0.2)' : 'none'
+                            }}
+                        >
+                            Kulüp
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setIsClubLogin(false)}
+                            style={{
+                                flex: 1,
+                                padding: '8px',
+                                borderRadius: 'var(--radius-sm)',
+                                border: 'none',
+                                background: !isClubLogin ? 'var(--color-bg-panel)' : 'transparent',
+                                color: !isClubLogin ? 'white' : 'var(--color-text-muted)',
+                                cursor: 'pointer',
+                                fontWeight: !isClubLogin ? 600 : 400,
+                                transition: 'all 0.2s',
+                                boxShadow: !isClubLogin ? '0 1px 3px rgba(0,0,0,0.2)' : 'none'
+                            }}
+                        >
+                            Öğrenci
+                        </button>
+                    </div>
+
                     {/* Form */}
                     <form onSubmit={handleSubmit} className="form-group">
                         <div className="form-group">
@@ -142,7 +198,7 @@ const LoginPage: React.FC = () => {
                                 name="email"
                                 type="email"
                                 className="form-input"
-                                placeholder="kulup@universite.edu.tr"
+                                placeholder={isClubLogin ? "kulup@universite.edu.tr" : "ogrenci@universite.edu.tr"}
                                 value={formData.email}
                                 onChange={handleChange}
                                 required
@@ -187,6 +243,10 @@ const LoginPage: React.FC = () => {
                             </div>
                         )}
                     </form>
+
+                    <div style={{ textAlign: 'center', marginTop: 'var(--spacing-lg)', fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
+                        Hesabınız yok mu? <a href="/register" style={{ color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600 }}>Kayıt Ol</a>
+                    </div>
                 </div>
             </div>
 
